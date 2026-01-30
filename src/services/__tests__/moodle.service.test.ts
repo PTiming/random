@@ -2,23 +2,34 @@ import { MoodleService } from '../moodle.service';
 import axios from 'axios';
 
 jest.mock('axios');
+jest.mock('../../config', () => ({
+  config: {
+    moodle: {
+      url: 'https://test-moodle.com',
+      token: 'test-token',
+    },
+  },
+}));
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('MoodleService', () => {
   let moodleService: MoodleService;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
     
-    // Create a fresh instance
-    moodleService = new MoodleService();
-    
-    // Mock axios.create to return a mock instance
-    const mockAxiosInstance = {
+    // Create mock axios instance
+    mockAxiosInstance = {
       get: jest.fn(),
     };
+    
     mockedAxios.create = jest.fn().mockReturnValue(mockAxiosInstance);
+    
+    // Create a fresh instance
+    moodleService = new MoodleService();
   });
 
   describe('getUsers', () => {
@@ -28,28 +39,22 @@ describe('MoodleService', () => {
         { id: 2, username: 'user2', firstname: 'Jane', lastname: 'Smith', email: 'jane@example.com' },
       ];
 
-      // Mock the axios get method
-      const mockGet = jest.fn().mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: { users: mockUsers },
       });
-      
-      // Override the client.get method
-      (moodleService as any).client.get = mockGet;
 
       const result = await moodleService.getUsers();
 
       expect(result).toEqual(mockUsers);
-      expect(mockGet).toHaveBeenCalledWith('', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('', {
         params: { wsfunction: 'core_user_get_users' },
       });
     });
 
     it('should handle Moodle API errors', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: { exception: true, message: 'API Error' },
       });
-      
-      (moodleService as any).client.get = mockGet;
 
       await expect(moodleService.getUsers()).rejects.toThrow('API Error');
     });
@@ -64,16 +69,14 @@ describe('MoodleService', () => {
         email: 'new@example.com',
       };
 
-      const mockGet = jest.fn().mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: [{ id: 123 }],
       });
-      
-      (moodleService as any).client.get = mockGet;
 
       const result = await moodleService.createUser(newUser);
 
       expect(result.id).toBe(123);
-      expect(mockGet).toHaveBeenCalledWith('', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('', {
         params: expect.objectContaining({
           wsfunction: 'core_user_create_users',
         }),
@@ -88,16 +91,14 @@ describe('MoodleService', () => {
         { id: 2, fullname: 'Course 2', shortname: 'C2' },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockCourses,
       });
-      
-      (moodleService as any).client.get = mockGet;
 
       const result = await moodleService.getCourses();
 
       expect(result).toEqual(mockCourses);
-      expect(mockGet).toHaveBeenCalledWith('', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('', {
         params: { wsfunction: 'core_course_get_courses' },
       });
     });
@@ -105,15 +106,13 @@ describe('MoodleService', () => {
 
   describe('enrollUser', () => {
     it('should enroll a user in a course', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: {},
       });
-      
-      (moodleService as any).client.get = mockGet;
 
       await moodleService.enrollUser(1, 2, 5);
 
-      expect(mockGet).toHaveBeenCalledWith('', {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('', {
         params: expect.objectContaining({
           wsfunction: 'enrol_manual_enrol_users',
           'enrolments[0][userid]': 1,

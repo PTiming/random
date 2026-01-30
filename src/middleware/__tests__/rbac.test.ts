@@ -1,9 +1,16 @@
-import { RBACMiddleware } from '../middleware/rbac';
-import pool from '../config/database';
-import { ResourceType, Action } from '../types';
+import { ResourceType, Action } from '../../types';
 
-// Mock the database
-jest.mock('../config/database');
+// Mock the database module first
+const mockQuery = jest.fn();
+jest.mock('../../config/database', () => ({
+  __esModule: true,
+  default: {
+    query: (...args: any[]) => mockQuery(...args),
+  },
+}));
+
+// Import after mocking
+import { RBACMiddleware } from '../rbac';
 
 describe('RBAC Middleware', () => {
   afterEach(() => {
@@ -12,10 +19,9 @@ describe('RBAC Middleware', () => {
 
   describe('hasPermission', () => {
     it('should return true when user has permission', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '1' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const result = await RBACMiddleware.hasPermission(
         'user-id',
@@ -31,10 +37,9 @@ describe('RBAC Middleware', () => {
     });
 
     it('should return false when user does not have permission', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '0' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const result = await RBACMiddleware.hasPermission(
         'user-id',
@@ -46,8 +51,7 @@ describe('RBAC Middleware', () => {
     });
 
     it('should return false on database error', async () => {
-      const mockQuery = jest.fn().mockRejectedValue(new Error('DB error'));
-      (pool.query as jest.Mock) = mockQuery;
+      mockQuery.mockRejectedValue(new Error('DB error'));
 
       const result = await RBACMiddleware.hasPermission(
         'user-id',
@@ -61,10 +65,9 @@ describe('RBAC Middleware', () => {
 
   describe('hasRole', () => {
     it('should return true when user has role', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '1' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const result = await RBACMiddleware.hasRole('user-id', ['Admin']);
 
@@ -76,10 +79,9 @@ describe('RBAC Middleware', () => {
     });
 
     it('should return false when user does not have role', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '0' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const result = await RBACMiddleware.hasRole('user-id', ['Admin']);
 
@@ -89,10 +91,9 @@ describe('RBAC Middleware', () => {
 
   describe('requireRole middleware', () => {
     it('should call next() when user has required role', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '1' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const req: any = {
         user: { id: 'user-id' },
@@ -111,10 +112,9 @@ describe('RBAC Middleware', () => {
     });
 
     it('should return 403 when user does not have required role', async () => {
-      const mockQuery = jest.fn().mockResolvedValue({
+      mockQuery.mockResolvedValue({
         rows: [{ count: '0' }],
       });
-      (pool.query as jest.Mock) = mockQuery;
 
       const req: any = {
         user: { id: 'user-id' },

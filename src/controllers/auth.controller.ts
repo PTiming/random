@@ -46,15 +46,13 @@ export class AuthController {
 
       // Generate tokens
       const token = jwt.sign(
-        { id: user.id, email: user.email, roles },
-        config.jwt.secret,
-        { expiresIn: config.jwt.expiry }
+        { id: user.id, email: user.email, roles } as object,
+        config.jwt.secret
       );
 
       const refreshToken = jwt.sign(
-        { id: user.id },
-        config.jwt.refreshSecret,
-        { expiresIn: config.jwt.refreshExpiry }
+        { id: user.id } as object,
+        config.jwt.refreshSecret
       );
 
       res.json({
@@ -109,9 +107,8 @@ export class AuthController {
 
       // Generate new token
       const token = jwt.sign(
-        { id: user.id, email: user.email, roles },
-        config.jwt.secret,
-        { expiresIn: config.jwt.expiry }
+        { id: user.id, email: user.email, roles } as object,
+        config.jwt.secret
       );
 
       res.json({ token });
