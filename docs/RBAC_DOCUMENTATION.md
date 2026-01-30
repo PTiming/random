@@ -311,6 +311,31 @@ schema.pre('save', function(next) {
 5. **Password Hashing**: Bcrypt for secure password storage
 6. **Socket Authentication**: JWT verification for WebSocket connections
 
+### Production Security Enhancements
+
+For production deployment, implement these additional security measures:
+
+1. **Rate Limiting**: Add express-rate-limit middleware to prevent brute force attacks
+   ```javascript
+   const rateLimit = require('express-rate-limit');
+   
+   const limiter = rateLimit({
+     windowMs: 15 * 60 * 1000, // 15 minutes
+     max: 100 // limit each IP to 100 requests per windowMs
+   });
+   
+   app.use('/api/', limiter);
+   ```
+
+2. **API Gateway**: Use Kong, AWS API Gateway, or similar for:
+   - Rate limiting
+   - Request throttling
+   - IP whitelisting/blacklisting
+
+3. **HTTPS**: Always use HTTPS in production
+
+4. **Environment Variables**: Never commit secrets to source control
+
 ---
 
 ## Quick Start
