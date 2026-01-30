@@ -131,7 +131,7 @@ const UserSchema = new Schema({
   firstName: { type: String },
   lastName: { type: String },
   avatar: { type: String },
-  bio: { type: String, maxLength: 500 },
+  bio: { type: String, maxlength: 500 },
   role: { type: String, enum: ['student', 'instructor', 'admin'], default: 'student' },
   
   // Moodle Integration
@@ -163,9 +163,9 @@ const UserSchema = new Schema({
 ```javascript
 const PostSchema = new Schema({
   author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  content: { type: String, maxLength: 5000 },
+  content: { type: String, maxlength: 5000 },
   media: [{
-    type: { type: String, enum: ['image', 'video', 'link'] },
+    mediaType: { type: String, enum: ['image', 'video', 'link'] },
     url: String,
     thumbnail: String
   }],
@@ -225,7 +225,7 @@ const MessageSchema = new Schema({
   sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String },
   media: [{
-    type: { type: String },
+    mediaType: { type: String },
     url: String
   }],
   readBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
@@ -291,7 +291,7 @@ GET    /api/users/:id/profile      - Get user profile
 PUT    /api/users/:id              - Update user
 DELETE /api/users/:id              - Delete user
 POST   /api/users/:id/follow       - Follow user
-POST   /api/users/:id/unfollow     - Unfollow user
+DELETE /api/users/:id/follow       - Unfollow user
 GET    /api/users/:id/followers    - Get followers
 GET    /api/users/:id/following    - Get following
 POST   /api/users/:id/friend-request - Send friend request
@@ -305,7 +305,7 @@ GET    /api/posts/:id              - Get post by ID
 PUT    /api/posts/:id              - Update post
 DELETE /api/posts/:id              - Delete post
 POST   /api/posts/:id/like         - Like post
-POST   /api/posts/:id/unlike       - Unlike post
+DELETE /api/posts/:id/like         - Unlike post
 POST   /api/posts/:id/share        - Share post
 GET    /api/posts/:id/comments     - Get post comments
 POST   /api/posts/:id/comments     - Add comment
