@@ -2,6 +2,17 @@
 
 A full-stack Learning Management System with Role-Based Access Control (RBAC), built using the MERN stack (MongoDB, Express, React, Node.js) with Moodle integration capabilities.
 
+## 📸 Screenshots
+
+### Homepage
+![LMS Homepage](https://github.com/user-attachments/assets/5933161d-c6fa-43bd-9cad-4f885e12e8ea)
+
+### Login Page
+![LMS Login](https://github.com/user-attachments/assets/8c554a96-cfe0-46e4-91fd-17e465fa631e)
+
+### Registration Page
+![LMS Register](https://github.com/user-attachments/assets/d4c6b8da-28ba-4398-ac8c-9d99bad4b475)
+
 ## 🚀 Features
 
 - **Role-Based Access Control (RBAC)** - Three user roles: Admin, Teacher, Student
