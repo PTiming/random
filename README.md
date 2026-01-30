@@ -142,6 +142,7 @@ socket.on('data:changed', ({ type, action, data }) => {
 
 ## 📚 Documentation
 
+- [**API Functions Reference**](./docs/API_FUNCTIONS.md) - Complete list of all API functions
 - [RBAC Documentation](./docs/RBAC_DOCUMENTATION.md) - Detailed RBAC system docs
 - [Moodle Integration Plan](./LMS_MOODLE_INTEGRATION_PLAN.md) - Moodle integration planning
 
