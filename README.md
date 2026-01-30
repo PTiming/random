@@ -2,6 +2,19 @@
 
 A comprehensive social networking platform built with the MERN stack (MongoDB, Express.js, React, Node.js) that integrates with Moodle LMS for a collaborative learning environment.
 
+## Key Features
+
+### 🔐 Role-Based Access Control (RBAC)
+- **Student**: Social features, course access, assignment submission to Moodle
+- **Instructor**: Course management, grade updates synced to Moodle, announcements
+- **Admin**: Full system control, user management, Moodle connection settings
+
+### 🔄 Two-Way Moodle Synchronization
+- **Inbound**: User roles, courses, grades, forum posts from Moodle
+- **Outbound**: Grades, submissions, announcements, forum posts to Moodle
+- Automatic conflict resolution with configurable strategies
+- Real-time webhooks and scheduled sync jobs
+
 ## Project Planning
 
 See [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) for the complete project planning documentation including:
@@ -9,11 +22,13 @@ See [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) for the complet
 - 📋 **Project Overview** - Vision and goals
 - 🛠️ **Technology Stack** - Frontend, Backend, and DevOps tools
 - ✨ **Core Features** - User management, social features, messaging, groups
+- 🔐 **RBAC System** - Role definitions, permission matrix, middleware design
+- 🔄 **Two-Way Moodle Sync** - Bidirectional data flow, conflict resolution
 - 🎓 **Moodle Integration** - Course sync, deadlines, grades, and more
 - 📊 **Database Schema** - MongoDB collections design
-- 🔌 **API Endpoints** - RESTful API structure
+- 🔌 **API Endpoints** - RESTful API structure with role-based access
 - 📁 **Project Structure** - Organized folder layout
-- 📅 **Development Phases** - 14-week roadmap
+- 📅 **Development Phases** - 16-week roadmap
 - 🔒 **Security Considerations** - Authentication and data protection
 - 🧪 **Testing Strategy** - Unit, integration, and E2E testing
 - 🚀 **Deployment Architecture** - Production infrastructure
