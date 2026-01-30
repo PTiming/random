@@ -30,8 +30,8 @@ const register = async (req, res) => {
     }
 
     // Only allow student registration publicly
-    // Admin must create teacher/admin accounts
-    const userRole = role === ROLES.STUDENT ? ROLES.STUDENT : ROLES.STUDENT;
+    // Admin must create teacher/admin accounts via the admin panel
+    const userRole = ROLES.STUDENT;
 
     // Create user
     const user = await User.create({

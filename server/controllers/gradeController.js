@@ -126,6 +126,7 @@ const createGrade = async (req, res) => {
 
     // Check for existing grade (update) or create new
     let grade = await Grade.findOne({ student, course, assignment });
+    let isNewGrade = !grade;
 
     if (grade) {
       // Update existing grade
@@ -155,7 +156,7 @@ const createGrade = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: grade.isNew ? 'Grade created successfully.' : 'Grade updated successfully.',
+      message: isNewGrade ? 'Grade created successfully.' : 'Grade updated successfully.',
       data: { grade: populatedGrade }
     });
   } catch (error) {

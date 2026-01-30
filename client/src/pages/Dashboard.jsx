@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useSocket } from '../../context/SocketContext';
-import { coursesAPI, gradesAPI, usersAPI } from '../../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
+import { coursesAPI, gradesAPI, usersAPI } from '../services/api';
 
 export function Dashboard() {
   const { user, isAdmin, isTeacher, isStudent } = useAuth();
@@ -11,7 +11,9 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
+    if (user) {
+      fetchDashboardData();
+    }
   }, [user]);
 
   const fetchDashboardData = async () => {
