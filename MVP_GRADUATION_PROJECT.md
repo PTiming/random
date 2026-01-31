@@ -1,13 +1,17 @@
 # MERN Social Network with Moodle Integration
-## 🎓 Simplified Graduation Project Plan (MVP)
+## 🎓 Graduation Project Plan (Full Featured)
 
-This is a streamlined version of the project suitable for a **graduation project** with a realistic scope for a single developer or small team over **10-12 weeks**.
+This is a comprehensive project plan for a **graduation project** with all requested features, suitable for a single developer or small team over **14-16 weeks**.
 
 ---
 
 ## 📋 Project Summary
 
-A social networking platform for students that connects with Moodle LMS to display course information, featuring **real-time messaging**, **file sharing**, and social interactions.
+A social networking platform for students that connects with Moodle LMS featuring:
+- **Real-time messaging** (1-to-1 and group chat)
+- **File sharing** 
+- **Two-way Moodle synchronization**
+- Social interactions (posts, likes, comments, follows)
 
 ---
 
@@ -40,19 +44,39 @@ A social networking platform for students that connects with Moodle LMS to displ
 | **Online/Offline Status** | Should Have | Low |
 | **File Sharing in Messages** | Should Have | Medium |
 
-### Phase 4: Moodle Integration (Weeks 8-9)
+### Phase 4: Group Chat (Weeks 8-9)
+| Feature | Priority | Complexity |
+|---------|----------|------------|
+| **Create Group Chat** | Must Have | Medium |
+| **Add/Remove Members** | Must Have | Medium |
+| **Group Messages** | Must Have | Medium |
+| **Group Admin (manage group)** | Should Have | Low |
+| **Leave Group** | Should Have | Low |
+
+### Phase 5: Moodle Integration - Read (Weeks 10-11)
 | Feature | Priority | Complexity |
 |---------|----------|------------|
 | Connect Moodle Account | Must Have | Medium |
 | View Enrolled Courses | Must Have | Medium |
 | View Upcoming Deadlines | Should Have | Medium |
+| View Grades | Should Have | Medium |
 | Course-based Groups (auto-create) | Nice to Have | Medium |
 
-### Phase 5: Polish & Demo (Weeks 10-12)
+### Phase 6: Moodle Integration - Two-Way Sync (Weeks 12-13)
+| Feature | Priority | Complexity |
+|---------|----------|------------|
+| **Submit Assignment to Moodle** | Must Have | High |
+| **Post to Moodle Forum** | Should Have | High |
+| **Reply to Moodle Forum** | Should Have | Medium |
+| **Update Grades (Teacher only)** | Nice to Have | High |
+| **Sync Role from Moodle** | Should Have | Medium |
+
+### Phase 7: Polish & Demo (Weeks 14-16)
 | Feature | Priority | Complexity |
 |---------|----------|------------|
 | Responsive UI | Must Have | Medium |
-| Basic Admin Panel | Should Have | Low |
+| Admin Panel | Should Have | Medium |
+| RBAC (Student/Teacher/Admin) | Should Have | Medium |
 | Testing & Bug Fixes | Must Have | - |
 | Documentation | Must Have | - |
 | Demo Preparation | Must Have | - |
@@ -63,13 +87,11 @@ A social networking platform for students that connects with Moodle LMS to displ
 
 These features are **NOT included** in the MVP:
 
-- ❌ **Two-way Moodle sync** (read-only is enough for graduation demo)
-- ❌ Complex RBAC (just Student/Admin is fine)
 - ❌ Push notifications
 - ❌ Video/voice calls
 - ❌ Mobile app (responsive web is enough)
-- ❌ Group chats (just 1-to-1 messaging)
 - ❌ Advanced analytics
+- ❌ Email notifications
 
 ---
 
@@ -116,9 +138,11 @@ Git + GitHub     - Version control
   lastName: String,
   avatar: String (URL),
   bio: String,
-  role: "student" | "admin",
+  role: "student" | "teacher" | "admin",  // 3 roles now
   moodleUserId: String,
   moodleToken: String,
+  moodleUrl: String,
+  moodleRole: String,                      // Role from Moodle
   followers: [ObjectId],
   following: [ObjectId],
   isOnline: Boolean,
@@ -140,12 +164,14 @@ Git + GitHub     - Version control
     text: String,
     createdAt: Date
   }],
+  moodleCourseId: String,    // Optional: linked to Moodle course
+  moodleForumId: String,     // If synced from/to Moodle forum
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### Message (NEW)
+### Message
 ```javascript
 {
   _id: ObjectId,
@@ -157,16 +183,21 @@ Git + GitHub     - Version control
     url: String,
     filename: String
   }],
-  readAt: Date,
+  readBy: [ObjectId],        // For group chats: who has read
   createdAt: Date
 }
 ```
 
-### Conversation (NEW)
+### Conversation (1-to-1 and Group Chat)
 ```javascript
 {
   _id: ObjectId,
-  participants: [ObjectId] (ref: User),  // Always 2 users for 1-to-1
+  type: "private" | "group",           // NEW: conversation type
+  participants: [ObjectId] (ref: User),
+  // Group-specific fields
+  groupName: String,                    // Only for groups
+  groupAvatar: String,                  // Only for groups
+  admin: ObjectId (ref: User),          // Group creator/admin
   lastMessage: ObjectId (ref: Message),
   createdAt: Date,
   updatedAt: Date
@@ -180,8 +211,45 @@ Git + GitHub     - Version control
   moodleId: String,
   name: String,
   shortName: String,
+  summary: String,
   enrolledUsers: [ObjectId],
+  linkedGroup: ObjectId (ref: Conversation),  // Auto-created group chat
   lastSynced: Date
+}
+```
+
+### MoodleAssignment (Cached)
+```javascript
+{
+  _id: ObjectId,
+  moodleId: String,
+  courseId: String,
+  name: String,
+  description: String,
+  dueDate: Date,
+  submissions: [{
+    userId: ObjectId,
+    moodleSubmissionId: String,
+    submittedAt: Date,
+    grade: Number,
+    feedback: String
+  }],
+  lastSynced: Date
+}
+```
+
+### MoodleSyncLog (For Two-Way Sync)
+```javascript
+{
+  _id: ObjectId,
+  userId: ObjectId,
+  direction: "inbound" | "outbound",   // From or to Moodle
+  type: "assignment" | "forum" | "grade",
+  moodleId: String,
+  localId: ObjectId,
+  status: "pending" | "success" | "failed",
+  error: String,
+  createdAt: Date
 }
 ```
 
@@ -217,7 +285,7 @@ POST /api/posts/:id/like    - Toggle like
 POST /api/posts/:id/comment - Add comment
 ```
 
-### Messages (5 endpoints) - NEW
+### Messages - 1-to-1 Chat (5 endpoints)
 ```
 GET  /api/conversations           - Get user's conversations
 POST /api/conversations           - Start new conversation
@@ -226,20 +294,49 @@ POST /api/conversations/:id/messages - Send message
 PUT  /api/messages/:id/read       - Mark message as read
 ```
 
-### File Upload (2 endpoints) - NEW
+### Group Chat (6 endpoints) - NEW
+```
+POST /api/groups                  - Create group chat
+GET  /api/groups/:id              - Get group details
+PUT  /api/groups/:id              - Update group (name, avatar)
+POST /api/groups/:id/members      - Add member to group
+DELETE /api/groups/:id/members/:userId - Remove member
+DELETE /api/groups/:id/leave      - Leave group
+```
+
+### File Upload (2 endpoints)
 ```
 POST /api/upload/image      - Upload image (for posts)
 POST /api/upload/file       - Upload file (for messages)
 ```
 
-### Moodle (3 endpoints)
+### Moodle - Read (5 endpoints)
 ```
 POST /api/moodle/connect    - Connect Moodle account
 GET  /api/moodle/courses    - Get enrolled courses
 GET  /api/moodle/deadlines  - Get upcoming deadlines
+GET  /api/moodle/grades     - Get user's grades
+GET  /api/moodle/forums/:courseId - Get forum discussions
 ```
 
-**Total: ~26 endpoints** (manageable with extra features)
+### Moodle - Two-Way Sync (5 endpoints) - NEW
+```
+POST /api/moodle/assignments/:id/submit  - Submit assignment TO Moodle
+POST /api/moodle/forums/:id/post         - Create forum post IN Moodle
+POST /api/moodle/forums/:id/reply        - Reply to forum IN Moodle
+PUT  /api/moodle/grades/:id              - Update grade (teacher) IN Moodle
+POST /api/moodle/sync                    - Trigger manual sync
+```
+
+### Admin (4 endpoints)
+```
+GET  /api/admin/users       - List all users
+DELETE /api/admin/users/:id - Delete user
+DELETE /api/admin/posts/:id - Delete any post
+GET  /api/admin/stats       - Get system statistics
+```
+
+**Total: ~43 endpoints**
 
 ---
 
@@ -251,17 +348,22 @@ GET  /api/moodle/deadlines  - Get upcoming deadlines
 // Client → Server
 'join'              - User comes online
 'leave'             - User goes offline
-'sendMessage'       - Send a new message
+'sendMessage'       - Send a message (1-to-1 or group)
 'typing'            - User is typing
+'joinGroup'         - Join a group chat room
+'leaveGroup'        - Leave a group chat room
 
 // Server → Client
 'newMessage'        - Receive new message
 'userOnline'        - User came online
 'userOffline'       - User went offline
 'typing'            - Someone is typing
+'groupMessage'      - New message in group
+'memberJoined'      - New member added to group
+'memberLeft'        - Member left/removed from group
 ```
 
-### Simple Socket Implementation
+### Socket Implementation
 
 ```javascript
 // server/socket.js
@@ -269,16 +371,25 @@ io.on('connection', (socket) => {
   // User joins with their userId
   socket.on('join', (userId) => {
     socket.join(userId);
-    // Update user online status
     User.findByIdAndUpdate(userId, { isOnline: true });
     socket.broadcast.emit('userOnline', userId);
   });
 
-  // Handle sending messages
+  // Join group chat room
+  socket.on('joinGroup', (groupId) => {
+    socket.join(`group:${groupId}`);
+  });
+
+  // Handle 1-to-1 messages
   socket.on('sendMessage', async (data) => {
     const message = await Message.create(data);
-    // Send to recipient
     io.to(data.recipientId).emit('newMessage', message);
+  });
+
+  // Handle group messages
+  socket.on('groupMessage', async (data) => {
+    const message = await Message.create(data);
+    io.to(`group:${data.groupId}`).emit('groupMessage', message);
   });
 
   // Handle disconnect
@@ -287,6 +398,187 @@ io.on('connection', (socket) => {
   });
 });
 ```
+
+---
+
+## 👥 Group Chat Implementation
+
+### Creating a Group
+```javascript
+// POST /api/groups
+const createGroup = async (req, res) => {
+  const { name, members } = req.body;
+  
+  const group = await Conversation.create({
+    type: 'group',
+    groupName: name,
+    participants: [req.user.id, ...members],
+    admin: req.user.id
+  });
+  
+  // Notify members via socket
+  members.forEach(memberId => {
+    io.to(memberId).emit('addedToGroup', group);
+  });
+  
+  res.json(group);
+};
+```
+
+### Group Message Flow
+```
+1. User sends message → Socket 'groupMessage' event
+2. Server saves to MongoDB
+3. Server emits to group room → All members receive
+4. Each client updates their UI
+```
+
+---
+
+## 🔄 Two-Way Moodle Sync
+
+### How It Works
+
+#### Outbound (Your App → Moodle)
+
+**1. Submit Assignment**
+```javascript
+// POST /api/moodle/assignments/:id/submit
+const submitAssignment = async (req, res) => {
+  const { assignmentId } = req.params;
+  const { file, text } = req.body;
+  
+  // 1. Upload file if provided
+  let fileUrl;
+  if (file) {
+    fileUrl = await uploadToCloudinary(file);
+  }
+  
+  // 2. Call Moodle API
+  const result = await moodleClient.call('mod_assign_save_submission', {
+    assignmentid: assignmentId,
+    plugindata: {
+      onlinetext_editor: { text, format: 1 },
+      // files if uploaded
+    }
+  });
+  
+  // 3. Mark for grading
+  await moodleClient.call('mod_assign_submit_for_grading', {
+    assignmentid: assignmentId,
+    acceptsubmissionstatement: true
+  });
+  
+  // 4. Log the sync
+  await MoodleSyncLog.create({
+    userId: req.user.id,
+    direction: 'outbound',
+    type: 'assignment',
+    status: 'success'
+  });
+  
+  res.json({ success: true });
+};
+```
+
+**2. Post to Forum**
+```javascript
+// POST /api/moodle/forums/:forumId/post
+const postToForum = async (req, res) => {
+  const { forumId } = req.params;
+  const { subject, message } = req.body;
+  
+  const result = await moodleClient.call('mod_forum_add_discussion', {
+    forumid: forumId,
+    subject,
+    message,
+    messageformat: 1
+  });
+  
+  res.json({ discussionId: result.discussionid });
+};
+```
+
+**3. Update Grade (Teacher Only)**
+```javascript
+// PUT /api/moodle/grades/:assignmentId
+const updateGrade = async (req, res) => {
+  // Check if user is teacher
+  if (req.user.role !== 'teacher') {
+    return res.status(403).json({ error: 'Teachers only' });
+  }
+  
+  const { assignmentId } = req.params;
+  const { studentId, grade, feedback } = req.body;
+  
+  await moodleClient.call('mod_assign_save_grade', {
+    assignmentid: assignmentId,
+    userid: studentId,
+    grade,
+    attemptnumber: -1,
+    addattempt: 0,
+    workflowstate: 'graded',
+    plugindata: {
+      assignfeedbackcomments_editor: {
+        text: feedback,
+        format: 1
+      }
+    }
+  });
+  
+  res.json({ success: true });
+};
+```
+
+#### Inbound (Moodle → Your App)
+
+**Sync Courses & Assignments**
+```javascript
+// Called on login or manual sync
+const syncFromMoodle = async (userId) => {
+  const user = await User.findById(userId);
+  
+  // 1. Get courses
+  const courses = await moodleClient.call('core_enrol_get_users_courses', {
+    userid: user.moodleUserId
+  });
+  
+  // 2. Save/update courses locally
+  for (const course of courses) {
+    await MoodleCourse.findOneAndUpdate(
+      { moodleId: course.id },
+      {
+        name: course.fullname,
+        shortName: course.shortname,
+        $addToSet: { enrolledUsers: userId }
+      },
+      { upsert: true }
+    );
+  }
+  
+  // 3. Get assignments
+  const assignments = await moodleClient.call('mod_assign_get_assignments', {
+    courseids: courses.map(c => c.id)
+  });
+  
+  // 4. Save assignments locally
+  // ... similar upsert logic
+};
+```
+
+### Required Moodle Web Services
+
+| Function | Purpose | Direction |
+|----------|---------|-----------|
+| `core_enrol_get_users_courses` | Get enrolled courses | Inbound |
+| `mod_assign_get_assignments` | Get assignments | Inbound |
+| `gradereport_user_get_grades_table` | Get grades | Inbound |
+| `mod_forum_get_forum_discussions` | Get forum posts | Inbound |
+| `mod_assign_save_submission` | Submit assignment | Outbound |
+| `mod_assign_submit_for_grading` | Mark for grading | Outbound |
+| `mod_forum_add_discussion` | Create forum post | Outbound |
+| `mod_forum_add_discussion_post` | Reply to forum | Outbound |
+| `mod_assign_save_grade` | Update grade | Outbound |
 
 ---
 
@@ -393,7 +685,7 @@ project/
 
 ---
 
-## 📅 Updated Timeline (10-12 Weeks)
+## 📅 Updated Timeline (14-16 Weeks)
 
 | Week | Tasks |
 |------|-------|
@@ -401,18 +693,22 @@ project/
 | **2** | User registration, login, JWT, profiles |
 | **3** | Post CRUD operations |
 | **4** | News feed, likes, comments |
-| **5** | Follow system, **image upload for posts** |
-| **6** | **Socket.io setup, basic messaging** |
-| **7** | **Conversation UI, file sharing in messages** |
-| **8** | Moodle connection, course display |
-| **9** | Deadlines display, online status |
-| **10** | Admin panel, responsive design |
-| **11** | Testing, bug fixes |
-| **12** | Documentation, demo preparation |
+| **5** | Follow system, image upload for posts |
+| **6** | Socket.io setup, 1-to-1 messaging |
+| **7** | Conversation UI, file sharing in messages |
+| **8** | **Group chat: create, join, messaging** |
+| **9** | **Group chat: admin features, leave group** |
+| **10** | Moodle connection, course display, grades |
+| **11** | **Two-way sync: submit assignments** |
+| **12** | **Two-way sync: forum posts, grade updates** |
+| **13** | Admin panel, RBAC (student/teacher/admin) |
+| **14** | Responsive design, online status |
+| **15** | Testing, bug fixes |
+| **16** | Documentation, demo preparation |
 
 ---
 
-## 🎓 Moodle Integration (Simplified - Read Only)
+## 🎓 Moodle Integration (Two-Way)
 
 ### What You Need from Moodle Admin
 1. Enable Web Services in Moodle
@@ -420,38 +716,52 @@ project/
    - `core_webservice_get_site_info`
    - `core_enrol_get_users_courses`
    - `mod_assign_get_assignments`
+   - `mod_assign_save_submission` (for two-way)
+   - `mod_assign_submit_for_grading` (for two-way)
+   - `mod_forum_add_discussion` (for two-way)
+   - `mod_forum_add_discussion_post` (for two-way)
+   - `mod_assign_save_grade` (for teachers)
+   - `gradereport_user_get_grades_table`
 
-### Simple Connection Flow
+### Connection Flow
 ```
 1. User enters their Moodle URL
 2. User generates a token in Moodle (Security Keys)
 3. User pastes token in your app
-4. App stores token and fetches their courses
+4. App stores token encrypted
+5. App fetches courses and syncs role
+6. Two-way operations use stored token
 ```
-
-**Note**: Two-way sync is OUT OF SCOPE. This is read-only integration.
 
 ---
 
-## 🔐 Simple Role System
-
-Just two roles for MVP:
+## 🔐 Role System (3 Roles)
 
 ### Student (Default)
 - Create/edit/delete own posts
 - Upload images to posts
 - Like and comment on posts
 - Follow other users
-- Send/receive private messages
-- Share files in messages
+- Send/receive private messages (1-to-1 and group)
+- Create/join group chats
 - View Moodle courses (own)
+- **Submit assignments TO Moodle**
+- **Post to Moodle forums**
 - Update own profile
 
-### Admin
+### Teacher (From Moodle Role)
 - All student permissions
-- Delete any post
-- View all users
-- Basic dashboard with stats
+- **Update grades IN Moodle**
+- **Create announcements IN Moodle**
+- View students in their courses
+- Moderate course-related content
+
+### Admin
+- All teacher permissions
+- Delete any post/comment
+- View/manage all users
+- System dashboard with stats
+- Moodle connection settings
 
 ---
 
@@ -505,6 +815,7 @@ For graduation project, prepare:
 4. **API Documentation** - Endpoint descriptions
 5. **Demo Script** - What to show in presentation
 6. **Socket Events Documentation** - Real-time event descriptions
+7. **Moodle Integration Guide** - Two-way sync documentation
 
 ---
 
@@ -533,25 +844,28 @@ For your demo/presentation:
 - Use **MongoDB Atlas** (free tier) - cloud database
 - Use **Cloudinary** (free tier) - 25GB file storage
 - Use **Render.com** or **Railway** (free tier) - hosting
-- Use **demo.moodle.net** - test Moodle instance
+- Use **demo.moodle.net** - test Moodle instance (note: may have limited write permissions)
 
 ---
 
-## Quick Comparison
+## Feature Summary
 
-| Aspect | Full Plan | Graduation MVP |
-|--------|-----------|----------------|
-| Timeline | 16 weeks | 10-12 weeks |
-| Team Size | 2-3 developers | 1 developer |
-| API Endpoints | 40+ | ~26 |
-| Moodle Sync | Two-way, real-time | **One-way only (read)** |
-| Roles | 3 (Student, Instructor, Admin) | 2 (Student, Admin) |
-| Messaging | Group + 1-to-1 | **1-to-1 only** |
-| File Upload | Full media | **Images + files** |
-| Mobile | Native apps | Responsive web |
-| Complexity | Production-ready | Demo-ready |
+| Category | Features Included |
+|----------|-------------------|
+| **Authentication** | Register, Login, JWT, Profiles, Avatar |
+| **Posts & Feed** | Create, Edit, Delete, Images, Likes, Comments |
+| **Social** | Follow, Unfollow, Followers, Following |
+| **1-to-1 Messaging** | Private chat, File sharing, Online status, Typing |
+| **Group Chat** | Create group, Add/remove members, Group messages |
+| **Moodle (Read)** | Courses, Assignments, Deadlines, Grades |
+| **Moodle (Write)** | Submit assignments, Post to forums, Update grades |
+| **Roles** | Student, Teacher, Admin |
+| **Admin** | User management, Content moderation, Stats |
+
+**Total: ~43 API endpoints + ~15 socket events**
 
 ---
 
-*This plan includes real-time messaging and file uploads while remaining achievable for a graduation project. Two-way Moodle sync is intentionally excluded as it would significantly increase complexity.*
+*This is a full-featured graduation project plan including real-time messaging (1-to-1 and group), file uploads, and two-way Moodle synchronization. Timeline: 14-16 weeks.*
+
 
