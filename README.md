@@ -78,6 +78,7 @@ cd client && npm install && npm start
 | [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | Full plan with code |
 | [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md) | 65+ features checklist |
 | [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md) | 16 bonus ideas |
+| [AT_RISK_DETECTION.md](./AT_RISK_DETECTION.md) | 🆕 At-risk student detection algorithm |
 | [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Production reference |
 | [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements |
 
