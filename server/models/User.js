@@ -64,6 +64,21 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  bookmarks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post'
+  }],
+  darkMode: {
+    type: Boolean,
+    default: false
+  },
+  notificationPreferences: {
+    likes: { type: Boolean, default: true },
+    comments: { type: Boolean, default: true },
+    follows: { type: Boolean, default: true },
+    events: { type: Boolean, default: true },
+    announcements: { type: Boolean, default: true }
+  },
   createdAt: {
     type: Date,
     default: Date.now

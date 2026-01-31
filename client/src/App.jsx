@@ -8,6 +8,11 @@ import Profile from './pages/Profile';
 import Courses from './pages/Courses';
 import Groups from './pages/Groups';
 import Admin from './pages/Admin';
+// New feature pages
+import Events from './pages/Events';
+import Resources from './pages/Resources';
+import Bookmarks from './pages/Bookmarks';
+import Notifications from './pages/Notifications';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
@@ -69,6 +74,19 @@ function AppRoutes() {
       } />
       <Route path="/admin" element={
         <ProtectedRoute><Admin /></ProtectedRoute>
+      } />
+      {/* New feature routes */}
+      <Route path="/events" element={
+        <ProtectedRoute><Events /></ProtectedRoute>
+      } />
+      <Route path="/resources" element={
+        <ProtectedRoute><Resources /></ProtectedRoute>
+      } />
+      <Route path="/bookmarks" element={
+        <ProtectedRoute><Bookmarks /></ProtectedRoute>
+      } />
+      <Route path="/notifications" element={
+        <ProtectedRoute><Notifications /></ProtectedRoute>
       } />
     </Routes>
   );

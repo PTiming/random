@@ -15,6 +15,14 @@ const userRoutes = require('./routes/users');
 const searchRoutes = require('./routes/search');
 const moodleRoutes = require('./routes/moodle');
 const adminRoutes = require('./routes/admin');
+// New feature routes
+const announcementRoutes = require('./routes/announcements');
+const eventRoutes = require('./routes/events');
+const pollRoutes = require('./routes/polls');
+const notificationRoutes = require('./routes/notifications');
+const resourceRoutes = require('./routes/resources');
+const reportRoutes = require('./routes/reports');
+const bookmarkRoutes = require('./routes/bookmarks');
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +57,14 @@ app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/moodle', moodleRoutes);
 app.use('/api/admin', adminRoutes);
+// New feature routes
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/polls', pollRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/resources', resourceRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
