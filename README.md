@@ -5,6 +5,22 @@ A social networking platform for students built with the MERN stack (MongoDB, Ex
 
 ---
 
+## 🤔 Why This App? (Not Just Moodle)
+
+**👉 [WHY_THIS_APP.md](./WHY_THIS_APP.md)** - Full explanation
+
+**Quick answer:**
+| Moodle | This App |
+|--------|----------|
+| Slow forums | ✅ Real-time chat |
+| Work alone | ✅ Study groups |
+| Dated UI | ✅ Modern social media feel |
+| Check manually | ✅ Automatic notifications |
+
+> *"Instagram for students + WhatsApp messaging + Moodle data = This App"*
+
+---
+
 ## ⭐ Start Here
 
 | Document | Description |
@@ -75,10 +91,11 @@ cd client && npm install && npm start
 
 | Document | Description |
 |----------|-------------|
+| [WHY_THIS_APP.md](./WHY_THIS_APP.md) | 🆕 Why use this app vs just Moodle |
 | [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | Full plan with code |
 | [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md) | 65+ features checklist |
 | [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md) | 16 bonus ideas |
-| [AT_RISK_DETECTION.md](./AT_RISK_DETECTION.md) | 🆕 At-risk student detection algorithm |
+| [AT_RISK_DETECTION.md](./AT_RISK_DETECTION.md) | At-risk student detection algorithm |
 | [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Production reference |
 | [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements |
 
