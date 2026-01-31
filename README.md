@@ -1,7 +1,7 @@
 # MERN Social Network with Moodle Integration
 ## 🎓 Graduation Project
 
-A social networking platform for students built with the MERN stack (MongoDB, Express.js, React, Node.js) that integrates with Moodle LMS, featuring **real-time messaging**, **group chat**, **file sharing**, **two-way Moodle sync**, **study groups**, and **teacher analytics**.
+A social networking platform for students built with the MERN stack (MongoDB, Express.js, React, Node.js) that integrates with Moodle LMS.
 
 ---
 
@@ -9,15 +9,17 @@ A social networking platform for students built with the MERN stack (MongoDB, Ex
 
 **👉 [WHY_THIS_APP.md](./WHY_THIS_APP.md)** - Full explanation
 
-**Quick answer:**
-| Moodle | This App |
-|--------|----------|
-| Slow forums | ✅ Real-time chat |
-| Work alone | ✅ Study groups |
-| Dated UI | ✅ Modern social media feel |
-| Check manually | ✅ Automatic notifications |
+**The Problem:** Students check Moodle 1-2 times per week. They miss deadlines.
 
-> *"Instagram for students + WhatsApp messaging + Moodle data = This App"*
+**The Solution:** Put academic deadlines where students already look - their social feed.
+
+| Without This App | With This App |
+|------------------|---------------|
+| Student forgets to check Moodle | Student opens app to chat, sees deadline |
+| Question at 9PM, answer at 2PM next day | Question answered in 5 minutes by classmate |
+| Teacher notices failing student at week 12 | At-risk detection alerts teacher at week 4 |
+
+> *"Students who engage more frequently have better academic outcomes. This app increases engagement from weekly to daily."*
 
 ---
 
