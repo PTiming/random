@@ -50,6 +50,19 @@ cp .env.example .env
 npm run dev
 ```
 
+## Questions for Stakeholders
+
+See [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) for a comprehensive list of questions to help refine the project requirements, including:
+
+- 🎯 Project scope & priorities
+- 👥 User & organizational context  
+- 🎓 Moodle-specific requirements
+- 🔐 Security & compliance needs
+- 🎨 Branding & customization
+- 📊 Analytics & reporting
+- 🚀 Deployment preferences
+- 🔗 Additional integrations
+
 ## License
 
 MIT
