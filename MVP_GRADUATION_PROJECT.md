@@ -1,13 +1,13 @@
 # MERN Social Network with Moodle Integration
 ## 🎓 Simplified Graduation Project Plan (MVP)
 
-This is a streamlined version of the project suitable for a **graduation project** with a realistic scope for a single developer or small team over **8-10 weeks**.
+This is a streamlined version of the project suitable for a **graduation project** with a realistic scope for a single developer or small team over **10-12 weeks**.
 
 ---
 
 ## 📋 Project Summary
 
-A social networking platform for students that connects with Moodle LMS to display course information, allowing students to interact, share posts, and stay updated on their academic activities.
+A social networking platform for students that connects with Moodle LMS to display course information, featuring **real-time messaging**, **file sharing**, and social interactions.
 
 ---
 
@@ -29,8 +29,18 @@ A social networking platform for students that connects with Moodle LMS to displ
 | Like Posts | Must Have | Low |
 | Comment on Posts | Should Have | Medium |
 | Follow/Unfollow Users | Should Have | Medium |
+| **Image Upload for Posts** | Must Have | Medium |
 
-### Phase 3: Moodle Integration (Weeks 6-7)
+### Phase 3: Real-Time Messaging (Weeks 6-7)
+| Feature | Priority | Complexity |
+|---------|----------|------------|
+| **Socket.io Setup** | Must Have | Medium |
+| **1-to-1 Private Messaging** | Must Have | Medium |
+| **Conversation List** | Must Have | Medium |
+| **Online/Offline Status** | Should Have | Low |
+| **File Sharing in Messages** | Should Have | Medium |
+
+### Phase 4: Moodle Integration (Weeks 8-9)
 | Feature | Priority | Complexity |
 |---------|----------|------------|
 | Connect Moodle Account | Must Have | Medium |
@@ -38,7 +48,7 @@ A social networking platform for students that connects with Moodle LMS to displ
 | View Upcoming Deadlines | Should Have | Medium |
 | Course-based Groups (auto-create) | Nice to Have | Medium |
 
-### Phase 4: Polish & Demo (Weeks 8-10)
+### Phase 5: Polish & Demo (Weeks 10-12)
 | Feature | Priority | Complexity |
 |---------|----------|------------|
 | Responsive UI | Must Have | Medium |
@@ -51,27 +61,27 @@ A social networking platform for students that connects with Moodle LMS to displ
 
 ## ❌ Out of Scope (Save for Future)
 
-These features are **NOT included** in the MVP to keep the project manageable:
+These features are **NOT included** in the MVP:
 
-- ❌ Real-time messaging/chat (use comments instead)
-- ❌ Two-way Moodle sync (read-only is enough)
+- ❌ **Two-way Moodle sync** (read-only is enough for graduation demo)
 - ❌ Complex RBAC (just Student/Admin is fine)
 - ❌ Push notifications
-- ❌ File uploads (just text and links)
+- ❌ Video/voice calls
 - ❌ Mobile app (responsive web is enough)
-- ❌ Video calls
+- ❌ Group chats (just 1-to-1 messaging)
 - ❌ Advanced analytics
 
 ---
 
-## 🛠️ Simplified Tech Stack
+## 🛠️ Tech Stack
 
 ### Frontend
 ```
 React 18          - UI Framework
 React Router      - Navigation
 Axios            - API calls
-CSS/Tailwind     - Styling (pick one you know)
+Socket.io-client - Real-time messaging
+CSS/Tailwind     - Styling
 ```
 
 ### Backend
@@ -79,6 +89,9 @@ CSS/Tailwind     - Styling (pick one you know)
 Node.js + Express - Server
 MongoDB + Mongoose - Database
 JWT              - Authentication
+Socket.io        - Real-time communication
+Multer           - File upload handling
+Cloudinary       - Image storage (free tier)
 ```
 
 ### Development
@@ -90,7 +103,7 @@ Git + GitHub     - Version control
 
 ---
 
-## 📊 Simple Database Schema
+## 📊 Database Schema
 
 ### User
 ```javascript
@@ -108,6 +121,8 @@ Git + GitHub     - Version control
   moodleToken: String,
   followers: [ObjectId],
   following: [ObjectId],
+  isOnline: Boolean,
+  lastSeen: Date,
   createdAt: Date
 }
 ```
@@ -118,12 +133,41 @@ Git + GitHub     - Version control
   _id: ObjectId,
   author: ObjectId (ref: User),
   content: String,
+  images: [String],  // Array of image URLs
   likes: [ObjectId],
   comments: [{
     user: ObjectId,
     text: String,
     createdAt: Date
   }],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Message (NEW)
+```javascript
+{
+  _id: ObjectId,
+  conversation: ObjectId (ref: Conversation),
+  sender: ObjectId (ref: User),
+  content: String,
+  attachments: [{
+    type: "image" | "file",
+    url: String,
+    filename: String
+  }],
+  readAt: Date,
+  createdAt: Date
+}
+```
+
+### Conversation (NEW)
+```javascript
+{
+  _id: ObjectId,
+  participants: [ObjectId] (ref: User),  // Always 2 users for 1-to-1
+  lastMessage: ObjectId (ref: Message),
   createdAt: Date,
   updatedAt: Date
 }
@@ -143,7 +187,7 @@ Git + GitHub     - Version control
 
 ---
 
-## 🔌 Essential API Endpoints
+## 🔌 API Endpoints
 
 ### Authentication (4 endpoints)
 ```
@@ -162,15 +206,30 @@ DELETE /api/users/:id/follow - Unfollow user
 GET  /api/users/:id/followers - Get followers
 ```
 
-### Posts (6 endpoints)
+### Posts (7 endpoints)
 ```
 GET  /api/posts             - Get feed
-POST /api/posts             - Create post
+POST /api/posts             - Create post (with images)
 GET  /api/posts/:id         - Get single post
 PUT  /api/posts/:id         - Update post
 DELETE /api/posts/:id       - Delete post
 POST /api/posts/:id/like    - Toggle like
 POST /api/posts/:id/comment - Add comment
+```
+
+### Messages (5 endpoints) - NEW
+```
+GET  /api/conversations           - Get user's conversations
+POST /api/conversations           - Start new conversation
+GET  /api/conversations/:id       - Get conversation with messages
+POST /api/conversations/:id/messages - Send message
+PUT  /api/messages/:id/read       - Mark message as read
+```
+
+### File Upload (2 endpoints) - NEW
+```
+POST /api/upload/image      - Upload image (for posts)
+POST /api/upload/file       - Upload file (for messages)
 ```
 
 ### Moodle (3 endpoints)
@@ -180,39 +239,180 @@ GET  /api/moodle/courses    - Get enrolled courses
 GET  /api/moodle/deadlines  - Get upcoming deadlines
 ```
 
-**Total: ~18 endpoints** (manageable for graduation project)
+**Total: ~26 endpoints** (manageable with extra features)
 
 ---
 
-## 📁 Simple Project Structure
+## 🔄 Real-Time Features (Socket.io)
+
+### Socket Events
+
+```javascript
+// Client → Server
+'join'              - User comes online
+'leave'             - User goes offline
+'sendMessage'       - Send a new message
+'typing'            - User is typing
+
+// Server → Client
+'newMessage'        - Receive new message
+'userOnline'        - User came online
+'userOffline'       - User went offline
+'typing'            - Someone is typing
+```
+
+### Simple Socket Implementation
+
+```javascript
+// server/socket.js
+io.on('connection', (socket) => {
+  // User joins with their userId
+  socket.on('join', (userId) => {
+    socket.join(userId);
+    // Update user online status
+    User.findByIdAndUpdate(userId, { isOnline: true });
+    socket.broadcast.emit('userOnline', userId);
+  });
+
+  // Handle sending messages
+  socket.on('sendMessage', async (data) => {
+    const message = await Message.create(data);
+    // Send to recipient
+    io.to(data.recipientId).emit('newMessage', message);
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', async () => {
+    // Update offline status
+  });
+});
+```
+
+---
+
+## 📁 File Upload Implementation
+
+### Using Multer + Cloudinary (Recommended)
+
+```javascript
+// server/middleware/upload.js
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary (free tier: 25GB storage)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+});
+
+// Multer for handling multipart/form-data
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images allowed'), false);
+    }
+  }
+});
+
+// Upload to Cloudinary
+const uploadToCloudinary = async (buffer) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      { folder: 'social-network' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    ).end(buffer);
+  });
+};
+```
+
+### File Size Limits
+- **Post images**: Max 5MB, up to 4 images per post
+- **Message attachments**: Max 10MB per file
+- **Avatar**: Max 2MB
+
+---
+
+## 📁 Updated Project Structure
 
 ```
 project/
 ├── client/                 # React Frontend
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Page components
-│   │   ├── context/       # Auth context
-│   │   ├── services/      # API calls
+│   │   ├── components/
+│   │   │   ├── common/    # Shared components
+│   │   │   ├── posts/     # Post components
+│   │   │   ├── messages/  # Chat components (NEW)
+│   │   │   └── upload/    # File upload (NEW)
+│   │   ├── pages/
+│   │   │   ├── Feed.js
+│   │   │   ├── Profile.js
+│   │   │   ├── Messages.js    # NEW
+│   │   │   └── Courses.js
+│   │   ├── context/
+│   │   │   ├── AuthContext.js
+│   │   │   └── SocketContext.js  # NEW
+│   │   ├── services/
 │   │   └── App.js
 │   └── package.json
 │
-├── server/                 # Node.js Backend
-│   ├── config/            # Database config
-│   ├── controllers/       # Route handlers
-│   ├── middleware/        # Auth middleware
-│   ├── models/            # Mongoose models
-│   ├── routes/            # API routes
+├── server/
+│   ├── config/
+│   │   ├── db.js
+│   │   └── cloudinary.js     # NEW
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── postController.js
+│   │   ├── messageController.js  # NEW
+│   │   └── uploadController.js   # NEW
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   └── upload.js             # NEW
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Post.js
+│   │   ├── Message.js            # NEW
+│   │   └── Conversation.js       # NEW
+│   ├── routes/
+│   ├── socket/                   # NEW
+│   │   └── index.js
 │   └── server.js
 │
-├── .env                   # Environment variables
+├── .env
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🎓 Moodle Integration (Simplified)
+## 📅 Updated Timeline (10-12 Weeks)
+
+| Week | Tasks |
+|------|-------|
+| **1** | Project setup, database models, basic auth |
+| **2** | User registration, login, JWT, profiles |
+| **3** | Post CRUD operations |
+| **4** | News feed, likes, comments |
+| **5** | Follow system, **image upload for posts** |
+| **6** | **Socket.io setup, basic messaging** |
+| **7** | **Conversation UI, file sharing in messages** |
+| **8** | Moodle connection, course display |
+| **9** | Deadlines display, online status |
+| **10** | Admin panel, responsive design |
+| **11** | Testing, bug fixes |
+| **12** | Documentation, demo preparation |
+
+---
+
+## 🎓 Moodle Integration (Simplified - Read Only)
 
 ### What You Need from Moodle Admin
 1. Enable Web Services in Moodle
@@ -229,7 +429,7 @@ project/
 4. App stores token and fetches their courses
 ```
 
-This is simpler than OAuth and works for a demo!
+**Note**: Two-way sync is OUT OF SCOPE. This is read-only integration.
 
 ---
 
@@ -239,8 +439,11 @@ Just two roles for MVP:
 
 ### Student (Default)
 - Create/edit/delete own posts
+- Upload images to posts
 - Like and comment on posts
 - Follow other users
+- Send/receive private messages
+- Share files in messages
 - View Moodle courses (own)
 - Update own profile
 
@@ -252,39 +455,23 @@ Just two roles for MVP:
 
 ---
 
-## 📅 Realistic Timeline
-
-| Week | Tasks |
-|------|-------|
-| **1** | Project setup, database models, basic auth |
-| **2** | User registration, login, JWT implementation |
-| **3** | Post CRUD operations |
-| **4** | News feed, likes, basic UI |
-| **5** | Comments, follow system |
-| **6** | Moodle connection, course display |
-| **7** | Deadlines display, polish features |
-| **8** | Admin panel, responsive design |
-| **9** | Testing, bug fixes |
-| **10** | Documentation, demo preparation |
-
----
-
 ## 💡 Tips for Success
 
 ### Do's ✅
 - Start with backend API first
 - Test each endpoint with Postman before building UI
+- Set up Socket.io early, but keep it simple
+- Use Cloudinary for file storage (easiest option)
 - Use a Moodle demo site for testing (demo.moodle.net)
 - Keep UI simple - functionality over fancy design
 - Commit code frequently
-- Document as you go
 
 ### Don'ts ❌
-- Don't add features not in MVP list
+- Don't add group chats (stick to 1-to-1)
+- Don't implement video calls
+- Don't try two-way Moodle sync
 - Don't spend too long on perfect design
-- Don't try real-time features (too complex)
-- Don't worry about production deployment details
-- Don't skip testing to add more features
+- Don't worry about production scaling
 
 ---
 
@@ -292,11 +479,15 @@ Just two roles for MVP:
 
 ### Core Functionality to Demo
 - [ ] User can register and login
-- [ ] User can create a post
+- [ ] User can create a post with images
 - [ ] User can see posts in feed
 - [ ] User can like a post
 - [ ] User can comment on a post
 - [ ] User can follow another user
+- [ ] **User can send a private message**
+- [ ] **User receives messages in real-time**
+- [ ] **User can share files in messages**
+- [ ] **User can see online/offline status**
 - [ ] User can connect Moodle account
 - [ ] User can see their Moodle courses
 - [ ] Admin can delete posts
@@ -313,19 +504,11 @@ For graduation project, prepare:
 3. **User Manual** - How to use the app
 4. **API Documentation** - Endpoint descriptions
 5. **Demo Script** - What to show in presentation
+6. **Socket Events Documentation** - Real-time event descriptions
 
 ---
 
-## 🚀 Demo Environment
-
-For your demo/presentation:
-- Use **MongoDB Atlas** (free tier) - cloud database
-- Use **Render.com** or **Railway** (free tier) - hosting
-- Use **demo.moodle.net** - test Moodle instance
-
----
-
-## Environment Variables Needed
+## Environment Variables
 
 ```env
 # Server
@@ -333,29 +516,24 @@ PORT=5000
 MONGODB_URI=mongodb://localhost:27017/social_moodle
 JWT_SECRET=your_secret_key
 
+# Cloudinary (for file uploads)
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_KEY=your_api_key
+CLOUDINARY_SECRET=your_api_secret
+
 # Moodle (optional - can be per-user)
 MOODLE_DEFAULT_URL=https://demo.moodle.net
 ```
 
 ---
 
-## 📚 Learning Resources
+## 🚀 Demo Environment
 
-### React
-- React Official Tutorial
-- React Router Documentation
-
-### Node.js/Express
-- Express.js Documentation
-- JWT Authentication Tutorial
-
-### MongoDB
-- MongoDB University (free courses)
-- Mongoose Documentation
-
-### Moodle API
-- Moodle Web Services Documentation
-- demo.moodle.net for testing
+For your demo/presentation:
+- Use **MongoDB Atlas** (free tier) - cloud database
+- Use **Cloudinary** (free tier) - 25GB file storage
+- Use **Render.com** or **Railway** (free tier) - hosting
+- Use **demo.moodle.net** - test Moodle instance
 
 ---
 
@@ -363,15 +541,17 @@ MOODLE_DEFAULT_URL=https://demo.moodle.net
 
 | Aspect | Full Plan | Graduation MVP |
 |--------|-----------|----------------|
-| Timeline | 16 weeks | 8-10 weeks |
+| Timeline | 16 weeks | 10-12 weeks |
 | Team Size | 2-3 developers | 1 developer |
-| API Endpoints | 40+ | ~18 |
-| Moodle Sync | Two-way, real-time | One-way, on-demand |
+| API Endpoints | 40+ | ~26 |
+| Moodle Sync | Two-way, real-time | **One-way only (read)** |
 | Roles | 3 (Student, Instructor, Admin) | 2 (Student, Admin) |
-| Messaging | Real-time chat | Comments only |
+| Messaging | Group + 1-to-1 | **1-to-1 only** |
+| File Upload | Full media | **Images + files** |
 | Mobile | Native apps | Responsive web |
 | Complexity | Production-ready | Demo-ready |
 
 ---
 
-*This simplified plan is designed to be achievable for a graduation project while still demonstrating key concepts: MERN stack, REST API, authentication, third-party API integration, and basic social networking features.*
+*This plan includes real-time messaging and file uploads while remaining achievable for a graduation project. Two-way Moodle sync is intentionally excluded as it would significantly increase complexity.*
+

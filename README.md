@@ -1,41 +1,53 @@
 # MERN Social Network with Moodle Integration
 ## 🎓 Graduation Project
 
-A social networking platform for students built with the MERN stack (MongoDB, Express.js, React, Node.js) that integrates with Moodle LMS.
+A social networking platform for students built with the MERN stack (MongoDB, Express.js, React, Node.js) that integrates with Moodle LMS, featuring **real-time messaging** and **file sharing**.
 
 ---
 
 ## ⭐ Start Here: Graduation Project MVP
 
-**👉 [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md)** - Simplified plan for 8-10 weeks
+**👉 [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md)** - Complete plan for 10-12 weeks
 
-This is the recommended starting point! It includes:
-- ✅ Realistic scope for one developer
-- ✅ 8-10 week timeline
-- ✅ ~18 API endpoints (manageable)
-- ✅ Simple one-way Moodle integration
-- ✅ Basic Student/Admin roles
-- ✅ Clear week-by-week tasks
-- ✅ Demo preparation checklist
+This plan includes:
+- ✅ **Real-time messaging** (Socket.io)
+- ✅ **File uploads** (images for posts, files for messages)
+- ✅ One-way Moodle integration (read-only)
+- ✅ ~26 API endpoints
+- ✅ Week-by-week tasks
+- ✅ Socket events documentation
+- ✅ File upload implementation guide
 
 ---
 
 ## MVP Features
 
-### What You'll Build
-| Feature | Week |
-|---------|------|
-| User Registration & Login | 1-2 |
-| Create/View/Like Posts | 3-4 |
-| Comments & Follow System | 5 |
-| Moodle Course Display | 6-7 |
-| Admin Panel & Polish | 8-10 |
+| Feature | Weeks | Technologies |
+|---------|-------|--------------|
+| User Auth & Profiles | 1-2 | JWT, MongoDB |
+| Posts with Images | 3-5 | Multer, Cloudinary |
+| **Real-time Messaging** | 6-7 | **Socket.io** |
+| Moodle Courses | 8-9 | Moodle Web Services |
+| Polish & Demo | 10-12 | Testing, Docs |
 
-### Tech Stack (Keep It Simple)
+### Tech Stack
 ```
-Frontend: React + React Router + Axios + CSS
-Backend:  Node.js + Express + MongoDB + JWT
+Frontend: React + Socket.io-client + Axios
+Backend:  Node.js + Express + MongoDB + Socket.io + Multer + Cloudinary
 ```
+
+### What's IN Scope ✅
+- Real-time 1-to-1 private messaging
+- Image upload for posts
+- File sharing in messages
+- Online/offline status
+- Moodle course display (read-only)
+
+### What's OUT of Scope ❌
+- Two-way Moodle sync
+- Group chats
+- Video/voice calls
+- Push notifications
 
 ---
 
@@ -56,6 +68,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env
+# Add your Cloudinary credentials for file uploads
 
 # Start development (run both in separate terminals)
 # Terminal 1: Backend
@@ -71,21 +84,9 @@ cd client && npm start
 
 | Document | Description |
 |----------|-------------|
-| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | **Start here!** Simplified graduation project plan |
-| [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Full production-ready plan (for reference) |
-| [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements gathering checklist |
-
----
-
-## Project Structure
-
-```
-project/
-├── client/          # React frontend
-├── server/          # Node.js backend
-├── README.md
-└── docs/            # Documentation
-```
+| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | **Start here!** Full graduation project plan |
+| [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Full production plan (reference) |
+| [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements checklist |
 
 ---
 
