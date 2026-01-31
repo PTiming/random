@@ -4,6 +4,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
 import Messages from './pages/Messages';
+import Profile from './pages/Profile';
+import Courses from './pages/Courses';
+import Groups from './pages/Groups';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
@@ -50,6 +53,18 @@ function AppRoutes() {
       } />
       <Route path="/messages" element={
         <ProtectedRoute><Messages /></ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute><Profile /></ProtectedRoute>
+      } />
+      <Route path="/profile/:userId" element={
+        <ProtectedRoute><Profile /></ProtectedRoute>
+      } />
+      <Route path="/courses" element={
+        <ProtectedRoute><Courses /></ProtectedRoute>
+      } />
+      <Route path="/groups" element={
+        <ProtectedRoute><Groups /></ProtectedRoute>
       } />
     </Routes>
   );
