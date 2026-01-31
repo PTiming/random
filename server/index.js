@@ -14,6 +14,7 @@ const groupRoutes = require('./routes/groups');
 const userRoutes = require('./routes/users');
 const searchRoutes = require('./routes/search');
 const moodleRoutes = require('./routes/moodle');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +48,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/moodle', moodleRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

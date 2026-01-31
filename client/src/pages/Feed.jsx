@@ -171,6 +171,12 @@ const Feed = () => {
                   </div>
                   <span className="font-medium">My Progress</span>
                 </Link>
+                <Link to="/admin" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50 text-gray-700 transition-all group">
+                  <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-500 transition-colors">
+                    <span className="text-lg">🛡️</span>
+                  </div>
+                  <span className="font-medium">Admin Panel</span>
+                </Link>
               </div>
             </div>
           </div>

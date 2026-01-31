@@ -7,6 +7,7 @@ import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import Courses from './pages/Courses';
 import Groups from './pages/Groups';
+import Admin from './pages/Admin';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
@@ -65,6 +66,9 @@ function AppRoutes() {
       } />
       <Route path="/groups" element={
         <ProtectedRoute><Groups /></ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <ProtectedRoute><Admin /></ProtectedRoute>
       } />
     </Routes>
   );
