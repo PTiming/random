@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, GraduationCap, BookOpen, Check } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, User, GraduationCap, BookOpen, Check, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { register, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,11 +17,37 @@ const Register = () => {
     role: 'student',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    clearError();
+    setFormError('');
+    
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setFormError('Passwords do not match');
+      return;
+    }
+    
+    // Validate password length
+    if (formData.password.length < 6) {
+      setFormError('Password must be at least 6 characters');
+      return;
+    }
+    
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
-    console.log('Register:', formData);
+    
+    const result = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role
+    });
+    
+    setIsLoading(false);
+    
+    if (result.success) {
+      navigate('/feed');
+    }
   };
 
   // Password strength indicator
@@ -55,6 +85,14 @@ const Register = () => {
 
         {/* Card */}
         <div className="glass rounded-3xl shadow-2xl p-8 hover-lift">
+          {/* Error message */}
+          {(error || formError) && (
+            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm">{error || formError}</span>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
@@ -66,6 +104,7 @@ const Register = () => {
                 <input
                   type="text"
                   placeholder="John Doe"
+                  required
                   className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-indigo-500 transition-all outline-none input-animated bg-gray-50 focus:bg-white"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}

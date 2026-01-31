@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, GraduationCap, Sparkles, Users, BookOpen } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, GraduationCap, Sparkles, Users, BookOpen, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { login, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -10,11 +13,17 @@ const Login = () => {
     password: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    clearError();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
-    console.log('Login:', formData);
+    
+    const result = await login(formData);
+    setIsLoading(false);
+    
+    if (result.success) {
+      navigate('/feed');
+    }
   };
 
   return (
@@ -114,6 +123,14 @@ const Login = () => {
               <h2 className="text-2xl font-bold text-gray-900">Welcome back! 👋</h2>
               <p className="text-gray-500 mt-2">Enter your credentials to continue</p>
             </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
