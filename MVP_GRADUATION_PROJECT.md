@@ -71,7 +71,15 @@ A social networking platform for students that connects with Moodle LMS featurin
 | **Update Grades (Teacher only)** | Nice to Have | High |
 | **Sync Role from Moodle** | Should Have | Medium |
 
-### Phase 7: Polish & Demo (Weeks 14-16)
+### Phase 7: Enhanced Features (Weeks 14-15)
+| Feature | Priority | Complexity |
+|---------|----------|------------|
+| **Advanced Search** | Must Have | Medium |
+| **Study Groups** | Must Have | Medium |
+| **Resource Library** | Should Have | Medium |
+| **Teacher Analytics** | Should Have | Medium |
+
+### Phase 8: Polish & Demo (Weeks 16-18)
 | Feature | Priority | Complexity |
 |---------|----------|------------|
 | Responsive UI | Must Have | Medium |
@@ -90,8 +98,8 @@ These features are **NOT included** in the MVP:
 - ❌ Push notifications
 - ❌ Video/voice calls
 - ❌ Mobile app (responsive web is enough)
-- ❌ Advanced analytics
 - ❌ Email notifications
+- ❌ AI Study Assistant
 
 ---
 
@@ -253,6 +261,129 @@ Git + GitHub     - Version control
 }
 ```
 
+### StudyGroup (Enhanced)
+```javascript
+{
+  _id: ObjectId,
+  name: String,
+  description: String,
+  avatar: String,
+  course: ObjectId (ref: MoodleCourse),      // Linked to course
+  creator: ObjectId (ref: User),
+  admins: [ObjectId],
+  members: [ObjectId],
+  
+  // Study features
+  meetingSchedule: [{
+    title: String,
+    description: String,
+    dateTime: Date,
+    location: String,                         // Physical or URL
+    isOnline: Boolean,
+    attendees: [ObjectId]
+  }],
+  
+  // Shared resources
+  resources: [ObjectId (ref: Resource)],
+  
+  // Topics/tags for organization
+  tags: [String],                             // ["midterm", "chapter5"]
+  
+  // Settings
+  isPrivate: Boolean,
+  joinRequests: [ObjectId],
+  
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Resource (Resource Library)
+```javascript
+{
+  _id: ObjectId,
+  title: String,
+  description: String,
+  
+  // File info
+  file: {
+    url: String,                              // Cloudinary URL
+    filename: String,
+    type: String,                             // "pdf", "doc", "image", etc.
+    size: Number                              // In bytes
+  },
+  
+  // Organization
+  course: ObjectId (ref: MoodleCourse),
+  studyGroup: ObjectId (ref: StudyGroup),     // Optional
+  category: String,                           // "notes", "exam", "slides", "other"
+  tags: [String],
+  
+  // Uploaded by
+  uploadedBy: ObjectId (ref: User),
+  
+  // Engagement
+  downloads: Number,
+  likes: [ObjectId],
+  comments: [{
+    user: ObjectId,
+    text: String,
+    createdAt: Date
+  }],
+  
+  // Visibility
+  visibility: "public" | "course" | "group",
+  
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### TeacherAnalytics (Aggregated Data)
+```javascript
+{
+  _id: ObjectId,
+  teacher: ObjectId (ref: User),
+  course: ObjectId (ref: MoodleCourse),
+  period: String,                             // "2024-01", "2024-W05"
+  
+  // Student engagement
+  metrics: {
+    totalStudents: Number,
+    activeStudents: Number,                   // Logged in this period
+    
+    // Assignment metrics
+    assignmentSubmissionRate: Number,         // Percentage
+    averageGrade: Number,
+    onTimeSubmissions: Number,
+    lateSubmissions: Number,
+    
+    // Forum participation
+    forumPosts: Number,
+    forumReplies: Number,
+    
+    // Resource engagement
+    resourceDownloads: Number,
+    resourceUploads: Number,
+    
+    // Study group activity
+    studyGroupsCreated: Number,
+    studyGroupMeetings: Number
+  },
+  
+  // Per-student breakdown (for detailed view)
+  studentMetrics: [{
+    student: ObjectId,
+    assignmentsSubmitted: Number,
+    averageGrade: Number,
+    forumParticipation: Number,
+    lastActive: Date
+  }],
+  
+  generatedAt: Date
+}
+```
+
 ---
 
 ## 🔌 API Endpoints
@@ -328,6 +459,44 @@ PUT  /api/moodle/grades/:id              - Update grade (teacher) IN Moodle
 POST /api/moodle/sync                    - Trigger manual sync
 ```
 
+### Advanced Search (4 endpoints) - NEW
+```
+GET  /api/search                    - Global search (users, posts, courses)
+GET  /api/search/users              - Search users with filters
+GET  /api/search/posts              - Search posts with filters
+GET  /api/search/resources          - Search resources with filters
+```
+
+### Study Groups (8 endpoints) - NEW
+```
+GET  /api/study-groups              - List study groups (by course, public)
+POST /api/study-groups              - Create study group
+GET  /api/study-groups/:id          - Get study group details
+PUT  /api/study-groups/:id          - Update study group
+DELETE /api/study-groups/:id        - Delete study group
+POST /api/study-groups/:id/join     - Join/request to join group
+POST /api/study-groups/:id/meetings - Schedule a meeting
+PUT  /api/study-groups/:id/meetings/:meetingId - Update meeting
+```
+
+### Resource Library (6 endpoints) - NEW
+```
+GET  /api/resources                 - List resources (by course, category)
+POST /api/resources                 - Upload resource
+GET  /api/resources/:id             - Get resource details
+PUT  /api/resources/:id             - Update resource metadata
+DELETE /api/resources/:id           - Delete resource
+POST /api/resources/:id/download    - Track download & get URL
+```
+
+### Teacher Analytics (4 endpoints) - NEW
+```
+GET  /api/analytics/course/:courseId         - Get course analytics
+GET  /api/analytics/course/:courseId/students - Get per-student breakdown
+GET  /api/analytics/course/:courseId/trends   - Get trends over time
+GET  /api/analytics/export/:courseId          - Export analytics as CSV
+```
+
 ### Admin (4 endpoints)
 ```
 GET  /api/admin/users       - List all users
@@ -336,7 +505,7 @@ DELETE /api/admin/posts/:id - Delete any post
 GET  /api/admin/stats       - Get system statistics
 ```
 
-**Total: ~43 endpoints**
+**Total: ~65 endpoints**
 
 ---
 
@@ -630,6 +799,511 @@ const uploadToCloudinary = async (buffer) => {
 - **Post images**: Max 5MB, up to 4 images per post
 - **Message attachments**: Max 10MB per file
 - **Avatar**: Max 2MB
+- **Resources**: Max 50MB per file
+
+---
+
+## 🔍 Advanced Search Implementation
+
+### Search Query Syntax
+```javascript
+// GET /api/search?q=keyword&type=all&course=123&dateFrom=2024-01-01
+
+const searchController = {
+  globalSearch: async (req, res) => {
+    const { q, type = 'all', course, dateFrom, dateTo, limit = 20 } = req.query;
+    
+    // Build MongoDB text search query
+    const textQuery = { $text: { $search: q } };
+    
+    const results = {};
+    
+    if (type === 'all' || type === 'users') {
+      results.users = await User.find({
+        ...textQuery,
+        _id: { $ne: req.user.id }  // Exclude self
+      })
+      .select('username firstName lastName avatar')
+      .limit(5);
+    }
+    
+    if (type === 'all' || type === 'posts') {
+      const postQuery = { ...textQuery };
+      if (course) postQuery.moodleCourseId = course;
+      if (dateFrom) postQuery.createdAt = { $gte: new Date(dateFrom) };
+      
+      results.posts = await Post.find(postQuery)
+        .populate('author', 'username avatar')
+        .sort({ score: { $meta: 'textScore' } })
+        .limit(10);
+    }
+    
+    if (type === 'all' || type === 'resources') {
+      const resourceQuery = { ...textQuery };
+      if (course) resourceQuery.course = course;
+      
+      results.resources = await Resource.find(resourceQuery)
+        .populate('uploadedBy', 'username')
+        .sort({ downloads: -1 })
+        .limit(10);
+    }
+    
+    res.json(results);
+  }
+};
+```
+
+### Text Index Setup
+```javascript
+// In your models, add text indexes:
+
+// User model
+UserSchema.index({ 
+  username: 'text', 
+  firstName: 'text', 
+  lastName: 'text', 
+  bio: 'text' 
+});
+
+// Post model
+PostSchema.index({ content: 'text' });
+
+// Resource model
+ResourceSchema.index({ 
+  title: 'text', 
+  description: 'text', 
+  tags: 'text' 
+});
+```
+
+### Search Filters UI
+```
+┌─────────────────────────────────────────────────────┐
+│ 🔍 [Search...]                          [🔎 Search] │
+├─────────────────────────────────────────────────────┤
+│ Type: [All ▼] [Users] [Posts] [Resources]           │
+│ Course: [All Courses ▼]                             │
+│ Date: [From: ____] [To: ____]                       │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📚 Study Groups Implementation
+
+### Creating a Study Group
+```javascript
+// POST /api/study-groups
+const createStudyGroup = async (req, res) => {
+  const { name, description, courseId, isPrivate, tags } = req.body;
+  
+  // Verify user is enrolled in course (if course-linked)
+  if (courseId) {
+    const course = await MoodleCourse.findById(courseId);
+    if (!course.enrolledUsers.includes(req.user.id)) {
+      return res.status(403).json({ error: 'Must be enrolled in course' });
+    }
+  }
+  
+  const studyGroup = await StudyGroup.create({
+    name,
+    description,
+    course: courseId,
+    creator: req.user.id,
+    admins: [req.user.id],
+    members: [req.user.id],
+    isPrivate,
+    tags
+  });
+  
+  // Create associated group chat
+  const conversation = await Conversation.create({
+    type: 'group',
+    groupName: name,
+    participants: [req.user.id],
+    studyGroup: studyGroup._id
+  });
+  
+  studyGroup.conversation = conversation._id;
+  await studyGroup.save();
+  
+  res.status(201).json(studyGroup);
+};
+```
+
+### Scheduling Meetings
+```javascript
+// POST /api/study-groups/:id/meetings
+const scheduleMeeting = async (req, res) => {
+  const { title, description, dateTime, location, isOnline } = req.body;
+  const studyGroup = await StudyGroup.findById(req.params.id);
+  
+  // Only admins can schedule
+  if (!studyGroup.admins.includes(req.user.id)) {
+    return res.status(403).json({ error: 'Only admins can schedule meetings' });
+  }
+  
+  const meeting = {
+    title,
+    description,
+    dateTime: new Date(dateTime),
+    location,
+    isOnline,
+    attendees: []
+  };
+  
+  studyGroup.meetingSchedule.push(meeting);
+  await studyGroup.save();
+  
+  // Notify all members via socket
+  const memberIds = studyGroup.members.map(m => m.toString());
+  memberIds.forEach(memberId => {
+    io.to(memberId).emit('newMeeting', {
+      groupId: studyGroup._id,
+      groupName: studyGroup.name,
+      meeting
+    });
+  });
+  
+  res.json(meeting);
+};
+```
+
+### Study Group Features UI
+```
+┌─────────────────────────────────────────────────────┐
+│ 📚 Calculus Study Group                    [⚙️ Edit]│
+├─────────────────────────────────────────────────────┤
+│ 📖 Course: MATH 101 - Calculus I                    │
+│ 👥 12 members                                       │
+│ 🏷️ Tags: #midterm #chapter5 #derivatives            │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ 📅 Upcoming Meetings                                │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ 📍 Library Room 204                             │ │
+│ │ 🕐 Tomorrow 3:00 PM                             │ │
+│ │ "Review for Midterm"                            │ │
+│ │ 👥 5 attending  [✓ I'm going]                   │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ 📁 Shared Resources (8 files)           [View All] │
+│ └── 📄 Chapter 5 Notes.pdf                          │
+│ └── 📄 Practice Problems.docx                       │
+│                                                     │
+│ 💬 Group Chat                           [Open Chat] │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📖 Resource Library Implementation
+
+### Uploading Resources
+```javascript
+// POST /api/resources
+const uploadResource = async (req, res) => {
+  const { title, description, courseId, studyGroupId, category, tags } = req.body;
+  const file = req.file;
+  
+  // Upload to Cloudinary
+  const uploadResult = await cloudinary.uploader.upload_stream({
+    folder: 'resources',
+    resource_type: 'auto',  // Auto-detect file type
+    access_mode: 'authenticated'
+  });
+  
+  // Determine visibility
+  let visibility = 'public';
+  if (studyGroupId) visibility = 'group';
+  else if (courseId) visibility = 'course';
+  
+  const resource = await Resource.create({
+    title,
+    description,
+    file: {
+      url: uploadResult.secure_url,
+      filename: file.originalname,
+      type: getFileType(file.mimetype),
+      size: file.size
+    },
+    course: courseId,
+    studyGroup: studyGroupId,
+    category,
+    tags: tags ? tags.split(',').map(t => t.trim()) : [],
+    uploadedBy: req.user.id,
+    visibility
+  });
+  
+  res.status(201).json(resource);
+};
+
+// Helper function
+const getFileType = (mimetype) => {
+  if (mimetype.includes('pdf')) return 'pdf';
+  if (mimetype.includes('word') || mimetype.includes('document')) return 'doc';
+  if (mimetype.includes('sheet') || mimetype.includes('excel')) return 'spreadsheet';
+  if (mimetype.includes('presentation') || mimetype.includes('powerpoint')) return 'slides';
+  if (mimetype.startsWith('image/')) return 'image';
+  return 'other';
+};
+```
+
+### Resource Categories
+```javascript
+const RESOURCE_CATEGORIES = [
+  { value: 'notes', label: '📝 Notes', icon: '📝' },
+  { value: 'slides', label: '📊 Slides', icon: '📊' },
+  { value: 'exam', label: '📋 Past Exams', icon: '📋' },
+  { value: 'summary', label: '📄 Summary', icon: '📄' },
+  { value: 'practice', label: '✏️ Practice Problems', icon: '✏️' },
+  { value: 'other', label: '📁 Other', icon: '📁' }
+];
+```
+
+### Resource Library UI
+```
+┌─────────────────────────────────────────────────────┐
+│ 📚 Resource Library                    [+ Upload]   │
+├─────────────────────────────────────────────────────┤
+│ Course: [All Courses ▼]  Category: [All ▼]          │
+│ Sort by: [Most Downloaded ▼]                        │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ ┌───────────────────────────────────────────────┐   │
+│ │ 📄 Chapter 5 - Derivatives Notes              │   │
+│ │ 📚 MATH 101  👤 John D.  📥 45 downloads      │   │
+│ │ 🏷️ #derivatives #calculus                     │   │
+│ │ [⬇️ Download] [❤️ 12] [💬 3]                   │   │
+│ └───────────────────────────────────────────────┘   │
+│                                                     │
+│ ┌───────────────────────────────────────────────┐   │
+│ │ 📋 Midterm 2023 - Solutions                   │   │
+│ │ 📚 MATH 101  👤 Sarah M.  📥 89 downloads     │   │
+│ │ 🏷️ #exam #midterm #solutions                  │   │
+│ │ [⬇️ Download] [❤️ 34] [💬 7]                   │   │
+│ └───────────────────────────────────────────────┘   │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Teacher Analytics Implementation
+
+### Generating Analytics
+```javascript
+// GET /api/analytics/course/:courseId
+const getCourseAnalytics = async (req, res) => {
+  const { courseId } = req.params;
+  const { period = 'month' } = req.query;  // week, month, semester
+  
+  // Verify user is teacher for this course
+  const course = await MoodleCourse.findById(courseId);
+  // ... permission check ...
+  
+  const startDate = getStartDate(period);
+  const studentIds = course.enrolledUsers;
+  
+  // Aggregate metrics
+  const metrics = {
+    totalStudents: studentIds.length,
+    
+    // Active students (logged in during period)
+    activeStudents: await User.countDocuments({
+      _id: { $in: studentIds },
+      lastSeen: { $gte: startDate }
+    }),
+    
+    // Assignment metrics from MoodleAssignment
+    ...await getAssignmentMetrics(courseId, studentIds, startDate),
+    
+    // Forum participation
+    forumPosts: await Post.countDocuments({
+      author: { $in: studentIds },
+      moodleCourseId: courseId,
+      createdAt: { $gte: startDate }
+    }),
+    
+    // Resource engagement
+    resourceDownloads: await getResourceDownloads(courseId, startDate),
+    resourceUploads: await Resource.countDocuments({
+      course: courseId,
+      uploadedBy: { $in: studentIds },
+      createdAt: { $gte: startDate }
+    }),
+    
+    // Study group activity
+    ...await getStudyGroupMetrics(courseId, startDate)
+  };
+  
+  res.json({ course, period, metrics, generatedAt: new Date() });
+};
+
+// Helper: Assignment metrics
+const getAssignmentMetrics = async (courseId, studentIds, startDate) => {
+  const assignments = await MoodleAssignment.find({ courseId });
+  
+  let totalSubmissions = 0;
+  let onTimeSubmissions = 0;
+  let lateSubmissions = 0;
+  let totalGrades = 0;
+  let gradeCount = 0;
+  
+  for (const assignment of assignments) {
+    for (const submission of assignment.submissions) {
+      if (!studentIds.includes(submission.userId)) continue;
+      
+      totalSubmissions++;
+      if (submission.submittedAt <= assignment.dueDate) {
+        onTimeSubmissions++;
+      } else {
+        lateSubmissions++;
+      }
+      
+      if (submission.grade !== null) {
+        totalGrades += submission.grade;
+        gradeCount++;
+      }
+    }
+  }
+  
+  return {
+    assignmentSubmissionRate: (totalSubmissions / (assignments.length * studentIds.length)) * 100,
+    averageGrade: gradeCount > 0 ? totalGrades / gradeCount : 0,
+    onTimeSubmissions,
+    lateSubmissions
+  };
+};
+```
+
+### Per-Student Breakdown
+```javascript
+// GET /api/analytics/course/:courseId/students
+const getStudentBreakdown = async (req, res) => {
+  const { courseId } = req.params;
+  const course = await MoodleCourse.findById(courseId).populate('enrolledUsers');
+  
+  const studentMetrics = await Promise.all(
+    course.enrolledUsers.map(async (student) => {
+      const submissions = await MoodleAssignment.aggregate([
+        { $match: { courseId } },
+        { $unwind: '$submissions' },
+        { $match: { 'submissions.userId': student._id } }
+      ]);
+      
+      const posts = await Post.countDocuments({
+        author: student._id,
+        moodleCourseId: courseId
+      });
+      
+      const grades = submissions
+        .filter(s => s.submissions.grade !== null)
+        .map(s => s.submissions.grade);
+      
+      return {
+        student: {
+          _id: student._id,
+          name: `${student.firstName} ${student.lastName}`,
+          avatar: student.avatar
+        },
+        assignmentsSubmitted: submissions.length,
+        averageGrade: grades.length > 0 
+          ? grades.reduce((a, b) => a + b, 0) / grades.length 
+          : null,
+        forumParticipation: posts,
+        lastActive: student.lastSeen,
+        status: getStudentStatus(student, submissions)
+      };
+    })
+  );
+  
+  res.json(studentMetrics);
+};
+
+const getStudentStatus = (student, submissions) => {
+  const daysSinceActive = (Date.now() - student.lastSeen) / (1000 * 60 * 60 * 24);
+  
+  if (daysSinceActive > 14) return 'inactive';
+  if (submissions.length === 0) return 'at-risk';
+  return 'active';
+};
+```
+
+### Teacher Analytics Dashboard UI
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📊 Course Analytics: MATH 101 - Calculus I                  │
+│ Period: [This Month ▼]                      [📤 Export CSV] │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  📈 Overview                                                │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│  │ 45          │ │ 38          │ │ 84.5%       │           │
+│  │ Total       │ │ Active      │ │ Submission  │           │
+│  │ Students    │ │ Students    │ │ Rate        │           │
+│  └─────────────┘ └─────────────┘ └─────────────┘           │
+│                                                             │
+│  📊 Grade Distribution          📈 Submissions Over Time   │
+│  ┌───────────────────────┐     ┌───────────────────────┐   │
+│  │    ▓▓▓▓               │     │        ╱╲             │   │
+│  │ ▓▓▓▓▓▓▓▓              │     │       ╱  ╲   ╱╲      │   │
+│  │ ▓▓▓▓▓▓▓▓▓▓▓           │     │      ╱    ╲ ╱  ╲     │   │
+│  │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓        │     │ ────╱      ╲    ╲    │   │
+│  │ A   B   C   D   F     │     │ Week1  Week2  Week3   │   │
+│  └───────────────────────┘     └───────────────────────┘   │
+│                                                             │
+│  👥 Student Status                                          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🟢 Active (32)  🟡 At Risk (6)  🔴 Inactive (7)     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  📋 Students Needing Attention                   [View All] │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🔴 John Doe - No submissions, last seen 15 days ago │   │
+│  │ 🟡 Jane Smith - Missing 2 assignments              │   │
+│  │ 🟡 Bob Johnson - Grade dropped 20%                 │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Export to CSV
+```javascript
+// GET /api/analytics/export/:courseId
+const exportAnalytics = async (req, res) => {
+  const { courseId } = req.params;
+  const studentMetrics = await getStudentBreakdownData(courseId);
+  
+  const csvHeaders = [
+    'Student Name',
+    'Email',
+    'Assignments Submitted',
+    'Average Grade',
+    'Forum Posts',
+    'Last Active',
+    'Status'
+  ];
+  
+  const csvRows = studentMetrics.map(s => [
+    s.student.name,
+    s.student.email,
+    s.assignmentsSubmitted,
+    s.averageGrade?.toFixed(1) || 'N/A',
+    s.forumParticipation,
+    s.lastActive?.toISOString().split('T')[0] || 'Never',
+    s.status
+  ]);
+  
+  const csv = [csvHeaders, ...csvRows]
+    .map(row => row.join(','))
+    .join('\n');
+  
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename=analytics-${courseId}.csv`);
+  res.send(csv);
+};
+```
 
 ---
 
@@ -642,16 +1316,24 @@ project/
 │   │   ├── components/
 │   │   │   ├── common/    # Shared components
 │   │   │   ├── posts/     # Post components
-│   │   │   ├── messages/  # Chat components (NEW)
-│   │   │   └── upload/    # File upload (NEW)
+│   │   │   ├── messages/  # Chat components
+│   │   │   ├── search/    # Search components (NEW)
+│   │   │   ├── studyGroups/ # Study group components (NEW)
+│   │   │   ├── resources/ # Resource library (NEW)
+│   │   │   ├── analytics/ # Teacher analytics (NEW)
+│   │   │   └── upload/    # File upload
 │   │   ├── pages/
 │   │   │   ├── Feed.js
 │   │   │   ├── Profile.js
-│   │   │   ├── Messages.js    # NEW
+│   │   │   ├── Messages.js
+│   │   │   ├── Search.js         # NEW
+│   │   │   ├── StudyGroups.js    # NEW
+│   │   │   ├── Resources.js      # NEW
+│   │   │   ├── Analytics.js      # NEW (Teacher only)
 │   │   │   └── Courses.js
 │   │   ├── context/
 │   │   │   ├── AuthContext.js
-│   │   │   └── SocketContext.js  # NEW
+│   │   │   └── SocketContext.js
 │   │   ├── services/
 │   │   └── App.js
 │   └── package.json
@@ -659,22 +1341,30 @@ project/
 ├── server/
 │   ├── config/
 │   │   ├── db.js
-│   │   └── cloudinary.js     # NEW
+│   │   └── cloudinary.js
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── postController.js
-│   │   ├── messageController.js  # NEW
-│   │   └── uploadController.js   # NEW
+│   │   ├── messageController.js
+│   │   ├── searchController.js      # NEW
+│   │   ├── studyGroupController.js  # NEW
+│   │   ├── resourceController.js    # NEW
+│   │   ├── analyticsController.js   # NEW
+│   │   └── uploadController.js
 │   ├── middleware/
 │   │   ├── auth.js
-│   │   └── upload.js             # NEW
+│   │   ├── upload.js
+│   │   └── teacherOnly.js           # NEW
 │   ├── models/
 │   │   ├── User.js
 │   │   ├── Post.js
-│   │   ├── Message.js            # NEW
-│   │   └── Conversation.js       # NEW
+│   │   ├── Message.js
+│   │   ├── Conversation.js
+│   │   ├── StudyGroup.js            # NEW
+│   │   ├── Resource.js              # NEW
+│   │   └── TeacherAnalytics.js      # NEW
 │   ├── routes/
-│   ├── socket/                   # NEW
+│   ├── socket/
 │   │   └── index.js
 │   └── server.js
 │
@@ -685,7 +1375,7 @@ project/
 
 ---
 
-## 📅 Updated Timeline (14-16 Weeks)
+## 📅 Updated Timeline (16-18 Weeks)
 
 | Week | Tasks |
 |------|-------|
@@ -696,15 +1386,17 @@ project/
 | **5** | Follow system, image upload for posts |
 | **6** | Socket.io setup, 1-to-1 messaging |
 | **7** | Conversation UI, file sharing in messages |
-| **8** | **Group chat: create, join, messaging** |
-| **9** | **Group chat: admin features, leave group** |
+| **8** | Group chat: create, join, messaging |
+| **9** | Group chat: admin features, leave group |
 | **10** | Moodle connection, course display, grades |
-| **11** | **Two-way sync: submit assignments** |
-| **12** | **Two-way sync: forum posts, grade updates** |
-| **13** | Admin panel, RBAC (student/teacher/admin) |
-| **14** | Responsive design, online status |
-| **15** | Testing, bug fixes |
-| **16** | Documentation, demo preparation |
+| **11** | Two-way sync: submit assignments |
+| **12** | Two-way sync: forum posts, grade updates |
+| **13** | **Advanced Search: global search, filters** |
+| **14** | **Study Groups: create, meetings, shared resources** |
+| **15** | **Resource Library: upload, browse, download** |
+| **16** | **Teacher Analytics: dashboard, charts, export** |
+| **17** | Admin panel, RBAC, responsive design |
+| **18** | Testing, bug fixes, documentation, demo prep |
 
 ---
 
@@ -859,10 +1551,14 @@ For your demo/presentation:
 | **Group Chat** | Create group, Add/remove members, Group messages |
 | **Moodle (Read)** | Courses, Assignments, Deadlines, Grades |
 | **Moodle (Write)** | Submit assignments, Post to forums, Update grades |
+| **Advanced Search** | Global search, Filters by type/course/date |
+| **Study Groups** | Create, Schedule meetings, Share resources |
+| **Resource Library** | Upload, Browse by course, Download tracking |
+| **Teacher Analytics** | Dashboard, Charts, CSV export, At-risk students |
 | **Roles** | Student, Teacher, Admin |
 | **Admin** | User management, Content moderation, Stats |
 
-**Total: ~43 API endpoints + ~15 socket events**
+**Total: ~65 API endpoints + ~15 socket events**
 
 ---
 
