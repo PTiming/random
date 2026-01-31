@@ -93,11 +93,13 @@ cd client && npm install && npm start
 
 | Document | Description |
 |----------|-------------|
-| [WHY_THIS_APP.md](./WHY_THIS_APP.md) | 🆕 Why use this app vs just Moodle |
-| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | Full plan with code |
+| [WHY_THIS_APP.md](./WHY_THIS_APP.md) | Why use this app vs just Moodle |
+| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | Full technical plan |
+| **[UI_DESIGN_PLAN.md](./UI_DESIGN_PLAN.md)** | 🆕 UI wireframes, components, design system |
+| **[AUTH_SYSTEM_PLAN.md](./AUTH_SYSTEM_PLAN.md)** | 🆕 Authentication & authorization (JWT + Moodle) |
 | [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md) | 65+ features checklist |
 | [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md) | 16 bonus ideas |
-| [AT_RISK_DETECTION.md](./AT_RISK_DETECTION.md) | At-risk student detection algorithm |
+| [AT_RISK_DETECTION.md](./AT_RISK_DETECTION.md) | At-risk student detection |
 | [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Production reference |
 | [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements |
 
