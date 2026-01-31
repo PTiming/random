@@ -7,24 +7,43 @@ A social networking platform for students built with the MERN stack (MongoDB, Ex
 
 ## ⭐ Start Here
 
-**👉 [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md)** - Complete plan for 14-16 weeks
-
-**👉 [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md)** - Full feature list to review and customize
+| Document | Description |
+|----------|-------------|
+| **👉 [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md)** | Full technical plan (14-16 weeks) |
+| **👉 [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md)** | 65 core features to review |
+| **👉 [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md)** | 🆕 16 bonus feature ideas! |
 
 ---
 
-## All Features Included ✅
+## Core Features (65 total)
 
 | Category | Features |
 |----------|----------|
-| **Authentication** | Register, Login, JWT, Profiles, Avatar upload |
+| **Authentication** | Register, Login, JWT, Profiles, Avatar |
 | **Posts & Feed** | Create, Edit, Delete, Images, Likes, Comments |
 | **Social** | Follow/Unfollow, Followers list |
-| **1-to-1 Messaging** | Private chat, File sharing, Online status, Typing indicator |
-| **Group Chat** | Create group, Add/remove members, Group messages, Leave group |
-| **Moodle (Read)** | View courses, Assignments, Deadlines, Grades |
+| **1-to-1 Messaging** | Private chat, File sharing, Online status |
+| **Group Chat** | Create groups, Add/remove members |
+| **Moodle (Read)** | Courses, Assignments, Deadlines, Grades |
 | **Moodle (Write)** | Submit assignments, Post to forums, Update grades |
-| **Roles** | Student, Teacher (from Moodle), Admin |
+| **Roles** | Student, Teacher, Admin |
+
+---
+
+## 🆕 Bonus Feature Ideas
+
+Check [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md) for:
+
+| Feature | Impact | Time |
+|---------|--------|------|
+| 📅 Study Scheduler | ⭐⭐⭐ | 1-2 weeks |
+| 📊 Progress Dashboard | ⭐⭐⭐ | 1 week |
+| 🎮 Gamification | ⭐⭐⭐ | 1 week |
+| 🔔 Smart Notifications | ⭐⭐ | 1 week |
+| 🔖 Bookmarks | ⭐⭐ | 1 day |
+| #️⃣ Hashtags | ⭐⭐ | 2-3 days |
+| 🌙 Dark Mode | ⭐ | Half day |
+| 🤖 AI Study Assistant | ⭐⭐⭐⭐ | 2-3 weeks |
 
 ---
 
@@ -33,11 +52,9 @@ A social networking platform for students built with the MERN stack (MongoDB, Ex
 | Phase | Weeks | Features |
 |-------|-------|----------|
 | Foundation | 1-2 | Auth, Profiles, Database |
-| Social | 3-5 | Posts, Feed, Likes, Comments, Follows |
-| Messaging | 6-7 | 1-to-1 chat, File sharing |
-| Group Chat | 8-9 | Create groups, Group messaging |
-| Moodle Read | 10-11 | Courses, Assignments, Grades |
-| Moodle Write | 12-13 | Submit, Post to forums, Grade updates |
+| Social | 3-5 | Posts, Feed, Follows |
+| Messaging | 6-9 | 1-to-1 chat, Group chat |
+| Moodle | 10-13 | Read + Write sync |
 | Polish | 14-16 | Admin, Testing, Demo |
 
 ---
@@ -54,37 +71,27 @@ Backend:  Node.js + Express + MongoDB + Socket.io + Multer + Cloudinary
 ## Quick Start
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd mern-social-moodle
 
-# Install backend dependencies
-cd server && npm install
+# Backend
+cd server && npm install && npm run dev
 
-# Install frontend dependencies  
-cd ../client && npm install
-
-# Set up environment variables
-cp .env.example .env
-
-# Start development
-# Terminal 1: Backend
-cd server && npm run dev
-
-# Terminal 2: Frontend
-cd client && npm start
+# Frontend (new terminal)
+cd client && npm install && npm start
 ```
 
 ---
 
-## Documentation
+## All Documentation
 
 | Document | Description |
 |----------|-------------|
-| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | **Full plan** with code examples |
-| [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md) | **Feature list** to review/customize |
+| [MVP_GRADUATION_PROJECT.md](./MVP_GRADUATION_PROJECT.md) | Full plan with code |
+| [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md) | 65 features checklist |
+| [ADDITIONAL_FEATURES.md](./ADDITIONAL_FEATURES.md) | 16 bonus ideas |
 | [MERN_SOCIAL_NETWORK_PLAN.md](./MERN_SOCIAL_NETWORK_PLAN.md) | Production reference |
-| [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements checklist |
+| [QUESTIONS_FOR_STAKEHOLDERS.md](./QUESTIONS_FOR_STAKEHOLDERS.md) | Requirements |
 
 ---
 
