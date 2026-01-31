@@ -106,26 +106,40 @@ This app brings academic content into a space students **already want to use**.
 
 ---
 
-## 📊 One Metric That Matters
+## 📊 What "Engagement" Actually Means
 
-**How many times per week does a student check for updates?**
+**Engagement = How often a student looks at academic information**
 
-| Platform | Opens per week | Sees deadlines |
-|----------|----------------|----------------|
-| Moodle | 1-2 times | Maybe |
-| This App | 20+ times | Always |
+It's not about time spent. It's about **frequency of checking**.
 
-> **Practical reason:** Frequency of engagement directly correlates with academic success.
+### Example:
 
----
+| Behavior | Moodle | This App |
+|----------|--------|----------|
+| **Monday** | ❌ Didn't open | ✅ Chatted with friend, saw deadline alert |
+| **Tuesday** | ❌ Didn't open | ✅ Asked question in group, saw assignment |
+| **Wednesday** | ✅ Opened once, checked grades | ✅ Shared notes, saw forum post |
+| **Thursday** | ❌ Didn't open | ✅ Got message, saw grade update |
+| **Friday** | ❌ Didn't open | ✅ Joined study group, saw reminder |
 
-## 🎓 For Your Graduation Presentation
+**Moodle:** 1 check per week  
+**This App:** 5+ checks per week
 
-Instead of saying:
-> ❌ "It has real-time chat, study groups, and a modern interface"
+### Why This Matters:
 
-Say:
-> ✅ "Students who use this app check for updates 10x more often than Moodle-only students, because they're already there chatting with classmates. More frequent engagement means fewer missed deadlines and better academic outcomes."
+```
+Weekly engagement (Moodle):
+  Monday: Assignment posted
+  Wednesday: Student finally checks Moodle
+  Tuesday (deadline): Already passed ❌
+
+Daily engagement (This App):
+  Monday: Assignment posted → Student sees it while chatting
+  Tuesday: Student submits on time ✅
+```
+
+**"Increases engagement from weekly to daily" simply means:**
+> Students go from checking once a week to checking every day - not because we force them, but because they're already using the app to chat with friends.
 
 ---
 
