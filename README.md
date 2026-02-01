@@ -155,55 +155,131 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
 
 This LMS uses the following **20 Moodle Web Services API functions** for two-way data synchronization:
 
+### Two-Way Sync: Data Flow by Role
+
+Both students and teachers can **push data TO Moodle** and **pull data FROM Moodle**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    TWO-WAY DATA SYNC BY USER ROLE                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐                                      ┌─────────────┐      │
+│  │   STUDENT   │ ◄────────────────────────────────────│   MOODLE    │      │
+│  │             │ ────────────────────────────────────►│             │      │
+│  └─────────────┘                                      └─────────────┘      │
+│       │                                                      │             │
+│       │  TO MOODLE (Push):                                   │             │
+│       │  • Create/update profile                             │             │
+│       │  • Enroll/unenroll from courses                      │             │
+│       │                                                      │             │
+│       │  FROM MOODLE (Pull):                                 │             │
+│       │  • View grades                                       │             │
+│       │  • View completion status                            │             │
+│       │  • View enrolled courses                             │             │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐                                      ┌─────────────┐      │
+│  │   TEACHER   │ ◄────────────────────────────────────│   MOODLE    │      │
+│  │             │ ────────────────────────────────────►│             │      │
+│  └─────────────┘                                      └─────────────┘      │
+│       │                                                      │             │
+│       │  TO MOODLE (Push):                                   │             │
+│       │  • Create/update profile                             │             │
+│       │  • Create/update courses                             │             │
+│       │  • Enroll/unenroll students                          │             │
+│       │  • Update student grades                             │             │
+│       │                                                      │             │
+│       │  FROM MOODLE (Pull):                                 │             │
+│       │  • View all courses                                  │             │
+│       │  • View student roster                               │             │
+│       │  • View grades & submissions                         │             │
+│       │  • View completion status                            │             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### APIs by User Role
 
-#### 🎓 Student APIs
-These APIs are triggered when students interact with the LMS:
+#### 🎓 Student APIs (Two-Way Sync)
 
-| API Function | When Used | Description |
-|-------------|-----------|-------------|
-| `core_user_create_users` | Student registers | Creates student account in Moodle |
-| `core_user_update_users` | Student updates profile | Syncs profile changes to Moodle |
-| `core_user_get_users_by_field` | Student logs in | Verifies student exists in Moodle |
-| `enrol_manual_enrol_users` | Student enrolls in course | Enrolls student in Moodle course (roleid=5) |
-| `enrol_manual_unenrol_users` | Student unenrolls | Removes student from Moodle course |
-| `core_enrol_get_users_courses` | View "My Courses" | Gets student's enrolled courses from Moodle |
-| `gradereport_user_get_grades_table` | View grades | Fetches student's grades from Moodle |
-| `core_grades_get_grades` | View specific grade | Gets detailed grade for an activity |
-| `core_completion_get_course_completion_status` | View progress | Gets student's course completion status |
-| `core_completion_get_activities_completion_status` | View progress | Gets student's activity completion status |
+**Data Student Pushes TO Moodle:**
 
-#### 👨‍🏫 Teacher/Instructor APIs
-These APIs are triggered when teachers manage courses and students:
+| API Function | Action | Data Sent to Moodle |
+|-------------|--------|---------------------|
+| `core_user_create_users` | Register | Name, email, password → Creates Moodle account |
+| `core_user_update_users` | Update profile | Profile changes → Updates Moodle profile |
+| `enrol_manual_enrol_users` | Enroll in course | User ID + Course ID → Creates Moodle enrollment |
+| `enrol_manual_unenrol_users` | Unenroll | User ID + Course ID → Removes Moodle enrollment |
 
-| API Function | When Used | Description |
-|-------------|-----------|-------------|
-| `core_user_create_users` | Teacher registers | Creates teacher account in Moodle |
-| `core_user_update_users` | Teacher updates profile | Syncs profile changes to Moodle |
-| `core_user_get_users_by_field` | Manage students | Lookup students in Moodle |
-| `core_course_create_courses` | Create new course | Creates course in Moodle |
-| `core_course_update_courses` | Edit course | Updates course details in Moodle |
-| `core_course_get_courses` | View all courses | Lists available Moodle courses |
-| `core_course_get_courses_by_field` | Find specific course | Finds course by ID or shortname |
-| `enrol_manual_enrol_users` | Add student to course | Enrolls student (roleid=5) or self as teacher (roleid=3) |
-| `enrol_manual_unenrol_users` | Remove student | Unenrolls student from course |
-| `core_enrol_get_enrolled_users` | View class roster | Gets all students in a course |
-| `gradereport_user_get_grades_table` | View student grades | Gets all grades for a course |
-| `core_grades_get_grades` | View/export grades | Gets grades for specific items |
-| `core_grades_update_grades` | Enter grades | Updates student grades in Moodle |
-| `mod_assign_get_assignments` | View assignments | Gets all assignments in course |
-| `mod_assign_get_submissions` | View submissions | Gets student assignment submissions |
-| `core_completion_get_course_completion_status` | Track student progress | Gets completion status for a student |
-| `core_completion_get_activities_completion_status` | Track activity progress | Gets activity completion for a student |
+**Data Student Pulls FROM Moodle:**
+
+| API Function | Action | Data Retrieved from Moodle |
+|-------------|--------|---------------------------|
+| `core_user_get_users_by_field` | Login verification | User existence check |
+| `core_enrol_get_users_courses` | View "My Courses" | List of enrolled courses |
+| `gradereport_user_get_grades_table` | View grades | All grades for courses |
+| `core_grades_get_grades` | View specific grade | Grade details for an activity |
+| `core_completion_get_course_completion_status` | View progress | Course completion percentage |
+| `core_completion_get_activities_completion_status` | View progress | Activity completion status |
+
+#### 👨‍🏫 Teacher/Instructor APIs (Two-Way Sync)
+
+**Data Teacher Pushes TO Moodle:**
+
+| API Function | Action | Data Sent to Moodle |
+|-------------|--------|---------------------|
+| `core_user_create_users` | Register | Name, email, password → Creates Moodle account |
+| `core_user_update_users` | Update profile | Profile changes → Updates Moodle profile |
+| `core_course_create_courses` | Create course | Title, description, dates → Creates Moodle course |
+| `core_course_update_courses` | Edit course | Course changes → Updates Moodle course |
+| `enrol_manual_enrol_users` | Add student/self | User ID + Course ID + Role → Creates enrollment |
+| `enrol_manual_unenrol_users` | Remove student | User ID + Course ID → Removes enrollment |
+| `core_grades_update_grades` | Enter grades | **Student grades → Updates Moodle gradebook** |
+
+**Data Teacher Pulls FROM Moodle:**
+
+| API Function | Action | Data Retrieved from Moodle |
+|-------------|--------|---------------------------|
+| `core_user_get_users_by_field` | Lookup student | Student profile data |
+| `core_course_get_courses` | View all courses | List of all courses |
+| `core_course_get_courses_by_field` | Find course | Specific course details |
+| `core_enrol_get_enrolled_users` | View roster | All enrolled students |
+| `gradereport_user_get_grades_table` | View grades | All student grades |
+| `core_grades_get_grades` | Export grades | Detailed grade data |
+| `mod_assign_get_assignments` | View assignments | Assignment list |
+| `mod_assign_get_submissions` | View submissions | Student submissions |
+| `core_completion_get_course_completion_status` | Track progress | Student completion status |
+| `core_completion_get_activities_completion_status` | Track activities | Activity completion |
 
 #### 🔧 Admin-Only APIs
-These APIs are only used by administrators:
 
-| API Function | When Used | Description |
-|-------------|-----------|-------------|
-| `core_user_get_users` | Search all users | Query all Moodle users |
-| `core_user_delete_users` | Delete user | Removes user from Moodle |
-| `core_course_delete_courses` | Delete course | Removes course from Moodle |
+**Data Admin Pushes TO Moodle:**
+
+| API Function | Action | Data Sent to Moodle |
+|-------------|--------|---------------------|
+| `core_user_delete_users` | Delete user | User ID → Removes Moodle user |
+| `core_course_delete_courses` | Delete course | Course ID → Removes Moodle course |
+
+**Data Admin Pulls FROM Moodle:**
+
+| API Function | Action | Data Retrieved from Moodle |
+|-------------|--------|---------------------------|
+| `core_user_get_users` | Search all users | Full user list |
+
+### Summary: Who Can Push Data to Moodle?
+
+| User Role | Push to Moodle (Write) | Pull from Moodle (Read) |
+|-----------|------------------------|-------------------------|
+| **Student** | ✅ Profile, Enrollments | ✅ Grades, Progress, Courses |
+| **Teacher** | ✅ Profile, Courses, Enrollments, **Grades** | ✅ All student data |
+| **Admin** | ✅ Delete users/courses | ✅ All data |
+
+**Key Point:** Both students AND teachers can send data to Moodle. Teachers have the additional ability to:
+- Create and update courses
+- Enter and update student grades in Moodle's gradebook
+- Manage student enrollments
 
 ### API Usage Summary by Role
 
@@ -214,14 +290,17 @@ These APIs are only used by administrators:
 │                                                                             │
 │  STUDENT                      TEACHER                      ADMIN            │
 │  ────────                     ───────                      ─────            │
-│  • View own grades            • All Student APIs           • All APIs       │
-│  • View own progress          • Create/Edit courses        • Delete users   │
-│  • Enroll in courses          • Grade students             • Delete courses │
-│  • View enrolled courses      • View all students          • Full sync      │
-│                               • Manage enrollments                          │
-│                               • View submissions                            │
+│  Push: 4 APIs                 Push: 7 APIs                 Push: 2 APIs     │
+│  • Create/update profile      • All Student push APIs      • Delete users   │
+│  • Enroll/unenroll           • Create/update courses      • Delete courses │
+│                               • Update grades                               │
 │                                                                             │
-│  APIs Used: 10                APIs Used: 17                APIs Used: 20    │
+│  Pull: 6 APIs                 Pull: 10 APIs                Pull: 1 API      │
+│  • View grades               • All Student pull APIs      • Search users   │
+│  • View progress             • View roster                                 │
+│  • View courses              • View submissions                            │
+│                                                                             │
+│  Total: 10 APIs              Total: 17 APIs               Total: 20 APIs   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
