@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const setupSocket = require('./socket/socketHandler');
+const { apiLimiter, authLimiter, createLimiter } = require('./middleware/rateLimiter');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -34,6 +35,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Apply rate limiting
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Make io accessible in routes
 app.use((req, res, next) => {
   req.io = io;
@@ -43,7 +49,7 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 connectDB();
 
-// Routes
+// Routes with rate limiting for create operations
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);

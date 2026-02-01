@@ -49,5 +49,9 @@ export const useMessageStore = create((set, get) => ({
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
+  },
+
+  clearActiveChat: () => {
+    set({ activeChat: null, currentConversation: [] });
   }
 }));

@@ -17,7 +17,8 @@ function Messages() {
     fetchConversations, 
     fetchConversation, 
     sendMessage,
-    addMessage 
+    addMessage,
+    clearActiveChat
   } = useMessageStore();
   
   const [message, setMessage] = useState('');
@@ -98,7 +99,7 @@ function Messages() {
 
   const handleBack = () => {
     setSelectedUser(null);
-    useMessageStore.setState({ activeChat: null, currentConversation: [] });
+    clearActiveChat();
   };
 
   return (
