@@ -237,6 +237,7 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSearch = async (query) => {
     setSearch(query);
@@ -274,8 +275,13 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
   };
 
   const createGroup = async () => {
-    if (!groupName || selectedUsers.length < 2) {
-      alert('Please enter a group name and add at least 2 users');
+    setError('');
+    if (!groupName) {
+      setError('Please enter a group name');
+      return;
+    }
+    if (selectedUsers.length < 2) {
+      setError('Please add at least 2 users to the group');
       return;
     }
 
@@ -297,9 +303,9 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
       );
       setChats([data, ...chats]);
       onClose();
-    } catch (error) {
-      console.error('Error creating group:', error);
-      alert('Failed to create group chat');
+    } catch (err) {
+      console.error('Error creating group:', err);
+      setError('Failed to create group chat. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -310,6 +316,8 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <span className="modal-close" onClick={onClose}>&times;</span>
         <h3>Create Group Chat</h3>
+        
+        {error && <div className="error-message">{error}</div>}
         
         <div className="form-group">
           <label>Group Name</label>

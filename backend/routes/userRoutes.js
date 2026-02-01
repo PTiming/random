@@ -7,10 +7,11 @@ const {
   getUserProfile,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
+const { authLimiter, apiLimiter } = require('../middleware/rateLimiter');
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/', protect, searchUsers);
-router.get('/profile', protect, getUserProfile);
+router.post('/register', authLimiter, registerUser);
+router.post('/login', authLimiter, loginUser);
+router.get('/', apiLimiter, protect, searchUsers);
+router.get('/profile', apiLimiter, protect, getUserProfile);
 
 module.exports = router;

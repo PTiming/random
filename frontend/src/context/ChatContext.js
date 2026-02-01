@@ -61,7 +61,7 @@ export const ChatProvider = ({ children }) => {
             );
             if (!exists) {
               return [{
-                _id: Date.now(),
+                _id: crypto.randomUUID(),
                 message: newMessage,
                 chat: newMessage.chat,
                 isRead: false,
@@ -82,7 +82,7 @@ export const ChatProvider = ({ children }) => {
             );
             if (!exists) {
               return [{
-                _id: Date.now(),
+                _id: crypto.randomUUID(),
                 ...notification,
                 isRead: false,
                 createdAt: new Date().toISOString(),

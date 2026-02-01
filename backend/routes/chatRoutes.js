@@ -9,11 +9,12 @@ const {
   removeFromGroup,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
+const { apiLimiter } = require('../middleware/rateLimiter');
 
-router.route('/').post(protect, accessChat).get(protect, fetchChats);
-router.post('/group', protect, createGroupChat);
-router.put('/rename', protect, renameGroupChat);
-router.put('/groupadd', protect, addToGroup);
-router.put('/groupremove', protect, removeFromGroup);
+router.route('/').post(apiLimiter, protect, accessChat).get(apiLimiter, protect, fetchChats);
+router.post('/group', apiLimiter, protect, createGroupChat);
+router.put('/rename', apiLimiter, protect, renameGroupChat);
+router.put('/groupadd', apiLimiter, protect, addToGroup);
+router.put('/groupremove', apiLimiter, protect, removeFromGroup);
 
 module.exports = router;
