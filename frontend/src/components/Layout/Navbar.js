@@ -1,22 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { notificationsAPI } from '../../services/api';
 import { FiHome, FiUsers, FiMessageSquare, FiBook, FiBell, FiSettings, FiLogOut, FiSearch, FiMenu, FiX } from 'react-icons/fi';
 import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const { notifications } = useSocket();
+  const { unreadNotificationCount, setUnreadCount } = useSocket();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [recentNotifications, setRecentNotifications] = useState([]);
+
+  // Fetch unread count on mount
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await notificationsAPI.getUnreadCount();
+        setUnreadCount(response.data.count);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user, setUnreadCount]);
+
+  // Fetch recent notifications for dropdown
+  const fetchRecentNotifications = async () => {
+    try {
+      const response = await notificationsAPI.getNotifications({ limit: 5 });
+      setRecentNotifications(response.data.notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
     }
   };
 
@@ -25,7 +54,18 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const handleNotificationClick = () => {
+    setShowNotificationDropdown(!showNotificationDropdown);
+    if (!showNotificationDropdown) {
+      fetchRecentNotifications();
+    }
+    setShowDropdown(false);
+  };
+
+  const handleUserMenuClick = () => {
+    setShowDropdown(!showDropdown);
+    setShowNotificationDropdown(false);
+  };
 
   return (
     <nav className="navbar">
@@ -41,7 +81,7 @@ const Navbar = () => {
           <FiSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Search users, posts..."
+            placeholder="Search users, posts, hashtags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -62,19 +102,67 @@ const Navbar = () => {
           <Link to="/moodle" className="nav-item" title="Moodle">
             <FiBook />
           </Link>
-          <button className="nav-item notification-btn" title="Notifications">
-            <FiBell />
-            {unreadCount > 0 && (
-              <span className="notification-badge">{unreadCount}</span>
+          <div className="nav-item-wrapper">
+            <button 
+              className="nav-item notification-btn" 
+              title="Notifications"
+              onClick={handleNotificationClick}
+            >
+              <FiBell />
+              {unreadNotificationCount > 0 && (
+                <span className="notification-badge">
+                  {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                </span>
+              )}
+            </button>
+
+            {showNotificationDropdown && (
+              <div className="notification-dropdown show">
+                <div className="notification-dropdown-header">
+                  <h4>Notifications</h4>
+                  <Link to="/notifications" onClick={() => setShowNotificationDropdown(false)}>
+                    See all
+                  </Link>
+                </div>
+                <div className="notification-dropdown-list">
+                  {recentNotifications.length === 0 ? (
+                    <div className="notification-empty">No new notifications</div>
+                  ) : (
+                    recentNotifications.map(notification => (
+                      <Link
+                        key={notification._id}
+                        to={notification.link || '/notifications'}
+                        className={`notification-dropdown-item ${!notification.isRead ? 'unread' : ''}`}
+                        onClick={() => setShowNotificationDropdown(false)}
+                      >
+                        {notification.sender?.avatar ? (
+                          <img src={notification.sender.avatar} alt="" className="notification-avatar" />
+                        ) : (
+                          <div className="notification-avatar placeholder">
+                            {notification.sender?.firstName?.charAt(0) || '?'}
+                          </div>
+                        )}
+                        <div className="notification-content">
+                          <span className="notification-text">
+                            <strong>{notification.sender?.firstName || 'Someone'}</strong>{' '}
+                            {notification.message}
+                          </span>
+                        </div>
+                        {!notification.isRead && <span className="unread-indicator" />}
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         {/* User Menu */}
         <div className="navbar-user">
           <button
             className="user-menu-btn"
-            onClick={() => setShowDropdown(!showDropdown)}
+            onClick={handleUserMenuClick}
           >
             {user?.avatar ? (
               <img src={user.avatar} alt={user.username} className="user-avatar" />
@@ -94,6 +182,23 @@ const Navbar = () => {
                 onClick={() => setShowDropdown(false)}
               >
                 <FiUsers /> Profile
+              </Link>
+              <Link
+                to="/search"
+                className="dropdown-item"
+                onClick={() => setShowDropdown(false)}
+              >
+                <FiSearch /> Search
+              </Link>
+              <Link
+                to="/notifications"
+                className="dropdown-item"
+                onClick={() => setShowDropdown(false)}
+              >
+                <FiBell /> Notifications
+                {unreadNotificationCount > 0 && (
+                  <span className="menu-badge">{unreadNotificationCount}</span>
+                )}
               </Link>
               <Link
                 to="/settings"
@@ -125,6 +230,9 @@ const Navbar = () => {
           <Link to="/" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
             <FiHome /> Home
           </Link>
+          <Link to="/search" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
+            <FiSearch /> Search
+          </Link>
           <Link to="/friends" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
             <FiUsers /> Friends
           </Link>
@@ -133,6 +241,12 @@ const Navbar = () => {
           </Link>
           <Link to="/moodle" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
             <FiBook /> Moodle
+          </Link>
+          <Link to="/notifications" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
+            <FiBell /> Notifications
+            {unreadNotificationCount > 0 && (
+              <span className="mobile-badge">{unreadNotificationCount}</span>
+            )}
           </Link>
           <Link to="/settings" className="mobile-nav-item" onClick={() => setShowMobileMenu(false)}>
             <FiSettings /> Settings

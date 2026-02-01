@@ -185,6 +185,33 @@ exports.followUser = async (req, res) => {
 
     await Promise.all([currentUser.save(), userToFollow.save()]);
 
+    // Create notification
+    const Notification = require('../models/Notification');
+    const notification = new Notification({
+      recipient: id,
+      sender: req.userId,
+      type: 'new_follower',
+      message: 'started following you',
+      link: `/profile/${req.userId}`
+    });
+    await notification.save();
+    await notification.populate('sender', 'username firstName lastName avatar');
+
+    // Emit real-time notification
+    const io = req.app.get('io');
+    if (io) {
+      io.to(id).emit('notification', notification);
+      io.to(id).emit('newFollower', {
+        follower: {
+          _id: currentUser._id,
+          username: currentUser.username,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+          avatar: currentUser.avatar
+        }
+      });
+    }
+
     res.json({ message: 'Successfully followed user' });
   } catch (error) {
     console.error('Follow user error:', error);

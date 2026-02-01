@@ -194,12 +194,37 @@ exports.toggleLike = async (req, res) => {
       like => like.user.toString() === req.userId
     );
 
+    const io = req.app.get('io');
+    const currentUser = await User.findById(req.userId).select('username firstName lastName avatar');
+
     if (likeIndex > -1) {
       // Unlike
       post.likes.splice(likeIndex, 1);
+      
+      // Emit real-time unlike to post viewers
+      if (io) {
+        io.to(`post:${id}`).emit('postLiked', {
+          postId: id,
+          userId: req.userId,
+          user: currentUser,
+          liked: false,
+          likesCount: post.likes.length
+        });
+      }
     } else {
       // Like
       post.likes.push({ user: req.userId });
+
+      // Emit real-time like to post viewers
+      if (io) {
+        io.to(`post:${id}`).emit('postLiked', {
+          postId: id,
+          userId: req.userId,
+          user: currentUser,
+          liked: true,
+          likesCount: post.likes.length
+        });
+      }
 
       // Create notification for post author (if not self)
       if (post.author.toString() !== req.userId) {
@@ -212,9 +237,9 @@ exports.toggleLike = async (req, res) => {
           link: `/posts/${post._id}`
         });
         await notification.save();
+        await notification.populate('sender', 'username firstName lastName avatar');
 
         // Emit socket notification
-        const io = req.app.get('io');
         if (io) {
           io.to(post.author.toString()).emit('notification', notification);
         }
@@ -259,6 +284,15 @@ exports.addComment = async (req, res) => {
 
     await comment.populate('author', 'username firstName lastName avatar');
 
+    // Emit real-time comment to all users viewing the post
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`post:${id}`).emit('commentAdded', {
+        postId: id,
+        comment: comment
+      });
+    }
+
     // Create notification for post author (if not self)
     if (post.author.toString() !== req.userId) {
       const notification = new Notification({
@@ -271,9 +305,9 @@ exports.addComment = async (req, res) => {
         link: `/posts/${post._id}`
       });
       await notification.save();
+      await notification.populate('sender', 'username firstName lastName avatar');
 
       // Emit socket notification
-      const io = req.app.get('io');
       if (io) {
         io.to(post.author.toString()).emit('notification', notification);
       }

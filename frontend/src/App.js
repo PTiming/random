@@ -17,6 +17,8 @@ import Messages from './pages/Messages';
 import Moodle from './pages/Moodle';
 import Settings from './pages/Settings';
 import PostDetail from './pages/PostDetail';
+import Search from './pages/Search';
+import Notifications from './pages/Notifications';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -171,6 +173,26 @@ function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <PostDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Search />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Notifications />
             </MainLayout>
           </ProtectedRoute>
         }
