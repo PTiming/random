@@ -258,6 +258,25 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
    MOODLE_WEBHOOK_SECRET=your-webhook-secret
    ```
 
+5. **Create Admin Account:**
+   ```bash
+   npm run create-admin
+   ```
+   
+   This creates an admin with default credentials:
+   - Email: `admin@lms.com`
+   - Password: `Admin123!`
+   
+   **Custom admin credentials:**
+   ```bash
+   ADMIN_EMAIL=admin@yoursite.com ADMIN_PASSWORD=YourSecurePass123 npm run create-admin
+   ```
+   
+   **Reset admin password:**
+   ```bash
+   npm run reset-admin
+   ```
+
 5. Start the server:
    ```bash
    npm run dev
