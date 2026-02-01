@@ -333,6 +333,11 @@ class NotificationService {
     }
   }
 
+  // Time constants in milliseconds
+  static HOUR_IN_MS = 60 * 60 * 1000;
+  static DAY_IN_MS = 24 * 60 * 60 * 1000;
+  static WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+
   /**
    * Get the start time for digest period
    */
@@ -340,13 +345,13 @@ class NotificationService {
     const now = new Date();
     switch (frequency) {
       case 'hourly':
-        return new Date(now - 60 * 60 * 1000);
+        return new Date(now - NotificationService.HOUR_IN_MS);
       case 'daily':
-        return new Date(now - 24 * 60 * 60 * 1000);
+        return new Date(now - NotificationService.DAY_IN_MS);
       case 'weekly':
-        return new Date(now - 7 * 24 * 60 * 60 * 1000);
+        return new Date(now - NotificationService.WEEK_IN_MS);
       default:
-        return new Date(now - 24 * 60 * 60 * 1000);
+        return new Date(now - NotificationService.DAY_IN_MS);
     }
   }
 }

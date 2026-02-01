@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { 
   FiBell, FiCheck, FiCheckCircle, FiTrash2, FiFilter,
   FiMessageCircle, FiHeart, FiUserPlus, FiUsers, FiBook, FiAlertCircle

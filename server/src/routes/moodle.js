@@ -5,6 +5,7 @@ const MoodleSyncService = require('../services/moodle/moodleSyncService');
 const { MoodleCourse, UserMoodleMapping } = require('../models/Moodle');
 const User = require('../models/User');
 const config = require('../config');
+const { webhookLimiter, createLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -319,16 +320,49 @@ router.post('/forum-post', auth, async (req, res) => {
 });
 
 /**
+ * Verify Moodle webhook signature
+ */
+const verifyWebhookSignature = (req) => {
+  const signature = req.headers['x-moodle-signature'];
+  const webhookSecret = process.env.MOODLE_WEBHOOK_SECRET;
+  
+  if (!webhookSecret) {
+    throw new Error('MOODLE_WEBHOOK_SECRET is not configured');
+  }
+  
+  if (!signature) {
+    throw new Error('Missing webhook signature');
+  }
+  
+  // Create expected signature using HMAC-SHA256
+  const crypto = require('crypto');
+  const payload = JSON.stringify(req.body);
+  const expectedSignature = crypto
+    .createHmac('sha256', webhookSecret)
+    .update(payload)
+    .digest('hex');
+  
+  // Compare signatures using timing-safe comparison
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  
+  if (signatureBuffer.length !== expectedBuffer.length || 
+      !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
+    throw new Error('Invalid webhook signature');
+  }
+  
+  return true;
+};
+
+/**
  * @route   POST /api/moodle/webhook
  * @desc    Webhook endpoint for Moodle events
  * @access  Public (with signature verification)
  */
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', webhookLimiter, async (req, res) => {
   try {
-    // Verify webhook signature (implement based on your Moodle plugin)
-    const signature = req.headers['x-moodle-signature'];
-    
-    // TODO: Implement signature verification
+    // Verify webhook signature
+    verifyWebhookSignature(req);
     
     const { event, data } = req.body;
     

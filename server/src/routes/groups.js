@@ -5,6 +5,7 @@ const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const { validate, validationRules } = require('../middleware/validation');
 const NotificationService = require('../services/notification/notificationService');
+const { createLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -129,7 +130,7 @@ router.get('/:id', auth, async (req, res) => {
  * @desc    Create a new group
  * @access  Private
  */
-router.post('/', auth, validationRules.createGroup, validate, async (req, res) => {
+router.post('/', auth, createLimiter, validationRules.createGroup, validate, async (req, res) => {
   try {
     const { name, description, type, category, tags, settings, course } = req.body;
     

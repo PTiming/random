@@ -5,6 +5,7 @@ const User = require('../models/User');
 const { validate, validationRules } = require('../middleware/validation');
 const { auth } = require('../middleware/auth');
 const MoodleService = require('../services/moodle/moodleService');
+const { authLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ const router = express.Router();
  * @desc    Register a new user
  * @access  Public
  */
-router.post('/register', validationRules.register, validate, async (req, res) => {
+router.post('/register', authLimiter, validationRules.register, validate, async (req, res) => {
   try {
     const { email, password, username, firstName, lastName, institution } = req.body;
 
@@ -72,7 +73,7 @@ router.post('/register', validationRules.register, validate, async (req, res) =>
  * @desc    Login user
  * @access  Public
  */
-router.post('/login', validationRules.login, validate, async (req, res) => {
+router.post('/login', authLimiter, validationRules.login, validate, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -147,7 +148,7 @@ router.post('/login', validationRules.login, validate, async (req, res) => {
  * @desc    Login/Register via Moodle SSO
  * @access  Public
  */
-router.post('/moodle', async (req, res) => {
+router.post('/moodle', authLimiter, async (req, res) => {
   try {
     const { moodleToken, moodleUrl } = req.body;
 

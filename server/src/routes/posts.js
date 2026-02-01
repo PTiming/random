@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { auth, optionalAuth } = require('../middleware/auth');
 const { validate, validationRules } = require('../middleware/validation');
 const NotificationService = require('../services/notification/notificationService');
+const { createLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -137,7 +138,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  * @desc    Create a post
  * @access  Private
  */
-router.post('/', auth, validationRules.createPost, validate, async (req, res) => {
+router.post('/', auth, createLimiter, validationRules.createPost, validate, async (req, res) => {
   try {
     const { content, visibility, media, tags, mentions, postType, group, course } = req.body;
     
@@ -359,7 +360,7 @@ router.delete('/:id/react', auth, async (req, res) => {
  * @desc    Add comment to a post
  * @access  Private
  */
-router.post('/:id/comments', auth, validationRules.createComment, validate, async (req, res) => {
+router.post('/:id/comments', auth, createLimiter, validationRules.createComment, validate, async (req, res) => {
   try {
     const { content, mentions } = req.body;
     const post = await Post.findById(req.params.id);

@@ -5,6 +5,7 @@ const { auth } = require('../middleware/auth');
 const { validate, validationRules } = require('../middleware/validation');
 const NotificationService = require('../services/notification/notificationService');
 const { getIO, emitToUser } = require('../services/notification/socketService');
+const { createLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -256,7 +257,7 @@ router.post('/direct/:userId', auth, async (req, res) => {
  * @desc    Send a message
  * @access  Private
  */
-router.post('/conversations/:id/messages', auth, validationRules.sendMessage, validate, async (req, res) => {
+router.post('/conversations/:id/messages', auth, createLimiter, validationRules.sendMessage, validate, async (req, res) => {
   try {
     const { content, attachments, replyTo } = req.body;
     

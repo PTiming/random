@@ -105,10 +105,14 @@ class MoodleSyncService {
       );
       
       if (!existingEnrollment) {
+        // Determine user role from Moodle enrollment data
+        // The role can be passed from course enrollment data or fetched separately
+        const userRole = await this.determineUserRole(user, course.id);
+        
         cachedCourse.enrolledUsers.push({
           moodleUserId: user.moodleId,
           platformUserId: user._id,
-          role: 'student', // Could be determined from Moodle
+          role: userRole,
           enrolledAt: new Date()
         });
         
@@ -712,6 +716,45 @@ class MoodleSyncService {
       await this.completeSyncLog(log, 'failed', { error: error.message });
       console.error('Scheduled sync failed:', error);
     }
+  }
+
+  /**
+   * Determine user role in a course from Moodle
+   * Maps Moodle roles to platform roles
+   */
+  async determineUserRole(user, courseId) {
+    try {
+      const moodleService = new MoodleService(config.moodle.url, user.moodleToken);
+      const enrolledUsers = await moodleService.callMoodleAPI(
+        'core_enrol_get_enrolled_users',
+        { courseid: courseId }
+      );
+
+      // Find this user in the enrolled users list
+      const enrollment = enrolledUsers.find(e => e.id === user.moodleId);
+      
+      if (enrollment && enrollment.roles && enrollment.roles.length > 0) {
+        // Map Moodle roles to platform roles
+        // Moodle typically uses: editingteacher, teacher, student, manager
+        const moodleRole = enrollment.roles[0].shortname?.toLowerCase();
+        
+        const roleMapping = {
+          'editingteacher': 'instructor',
+          'teacher': 'instructor',
+          'manager': 'admin',
+          'coursecreator': 'instructor',
+          'student': 'student',
+          'guest': 'student'
+        };
+        
+        return roleMapping[moodleRole] || 'student';
+      }
+    } catch (error) {
+      console.warn(`Could not determine role for user ${user._id} in course ${courseId}:`, error.message);
+    }
+    
+    // Default to student if role detection fails
+    return 'student';
   }
 }
 

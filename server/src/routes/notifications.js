@@ -3,8 +3,12 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const { validate, validationRules } = require('../middleware/validation');
+const { notificationLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
+
+// Apply notification rate limiting to all routes
+router.use(notificationLimiter);
 
 /**
  * @route   GET /api/notifications

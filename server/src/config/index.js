@@ -1,7 +1,13 @@
+// Validate required environment variables in production
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required in production');
+}
+
 module.exports = {
   // JWT Configuration
   jwt: {
-    secret: process.env.JWT_SECRET || 'default_jwt_secret_for_development',
+    secret: process.env.JWT_SECRET || (isProduction ? undefined : 'default_jwt_secret_for_development_only'),
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   },
 

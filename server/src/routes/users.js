@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { auth, optionalAuth } = require('../middleware/auth');
 const { validate, validationRules } = require('../middleware/validation');
 const NotificationService = require('../services/notification/notificationService');
+const { createLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
