@@ -151,6 +151,356 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
 2. Configure webhooks to POST to `https://your-lms-domain.com/api/moodle/webhook`
 3. Set the webhook secret in your `.env` file
 
+---
+
+## 🔄 How to Sync with Moodle
+
+This section explains all the ways to synchronize data between the MERN LMS and Moodle.
+
+### Sync Methods Overview
+
+| Method | Trigger | Direction | Best For |
+|--------|---------|-----------|----------|
+| **Automatic Sync** | User actions | Both | Real-time updates |
+| **Manual Sync** | Button click | Both | On-demand updates |
+| **Webhook Sync** | Moodle events | Moodle → LMS | Real-time from Moodle |
+| **Full Sync** | Admin action | Both | Initial setup, recovery |
+
+---
+
+### Method 1: Automatic Sync (Happens Automatically)
+
+Data is automatically synced when users perform actions in the LMS:
+
+#### When a Student:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Student Action in LMS          →    Automatic Sync to Moodle   │
+├─────────────────────────────────────────────────────────────────┤
+│ Registers                      →    Creates Moodle account     │
+│ Updates profile                →    Updates Moodle profile     │
+│ Enrolls in course              →    Creates Moodle enrollment  │
+│ Unenrolls from course          →    Removes Moodle enrollment  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### When a Teacher:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Teacher Action in LMS          →    Automatic Sync to Moodle   │
+├─────────────────────────────────────────────────────────────────┤
+│ Creates course                 →    Creates Moodle course      │
+│ Updates course                 →    Updates Moodle course      │
+│ Enrolls student                →    Creates Moodle enrollment  │
+│ Enters grades                  →    Updates Moodle gradebook   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**No action required** - this happens in the background!
+
+---
+
+### Method 2: Manual Sync (Via API)
+
+Use these API endpoints to manually trigger sync:
+
+#### Sync Individual User
+```bash
+# Sync user TO Moodle
+POST /api/users/:userId/sync-moodle
+Content-Type: application/json
+Authorization: Bearer {admin-token}
+
+{
+  "direction": "to_moodle"
+}
+
+# Sync user FROM Moodle
+POST /api/users/:userId/sync-moodle
+{
+  "direction": "from_moodle"
+}
+```
+
+#### Sync Individual Course
+```bash
+# Sync course (bidirectional - both directions)
+POST /api/courses/:courseId/sync-moodle
+Authorization: Bearer {admin-token}
+
+{
+  "direction": "bidirectional"
+}
+
+# Options: "to_moodle", "from_moodle", "bidirectional"
+```
+
+#### Sync Grades from Moodle
+```bash
+# Pull grades from Moodle for a student in a course
+POST /api/grades/sync-moodle
+Authorization: Bearer {admin-token}
+
+{
+  "userId": "64abc123...",
+  "courseId": "64def456..."
+}
+```
+
+---
+
+### Method 3: Full System Sync (Admin Dashboard)
+
+For administrators to sync everything at once:
+
+#### Via Admin Dashboard (UI)
+1. Login as Admin
+2. Go to **Moodle Sync** page (`/moodle`)
+3. Click **"Full Sync All Courses"** button
+
+#### Via API
+```bash
+# Full sync - all courses
+POST /api/moodle/full-sync
+Authorization: Bearer {admin-token}
+
+{}
+
+# Full sync - specific course
+POST /api/moodle/full-sync
+Authorization: Bearer {admin-token}
+
+{
+  "courseId": "64def456..."
+}
+```
+
+**What Full Sync Does:**
+1. Syncs all course data to Moodle
+2. Imports all enrollments from Moodle
+3. Imports all grades from Moodle for enrolled users
+
+---
+
+### Method 4: Import from Moodle
+
+#### Import a Course from Moodle
+```bash
+# Step 1: List available Moodle courses
+GET /api/moodle/courses
+Authorization: Bearer {admin-token}
+
+# Response:
+[
+  { "id": 456, "shortname": "PROG101", "fullname": "Intro to Programming" },
+  { "id": 457, "shortname": "MATH101", "fullname": "Basic Math" }
+]
+
+# Step 2: Import a specific course
+POST /api/moodle/import-course
+Authorization: Bearer {admin-token}
+
+{
+  "moodleCourseId": 456
+}
+```
+
+---
+
+### Method 5: Webhook Sync (Real-time from Moodle)
+
+When events happen in Moodle, webhooks automatically update the LMS:
+
+#### Supported Moodle Events
+| Moodle Event | LMS Action |
+|--------------|------------|
+| `\core\event\user_created` | Creates/updates local user |
+| `\core\event\user_updated` | Updates local user |
+| `\core\event\course_created` | Creates local course |
+| `\core\event\course_updated` | Updates local course |
+| `\core\event\user_enrolment_created` | Enrolls user locally |
+| `\core\event\user_enrolment_deleted` | Unenrolls user locally |
+| `\core\event\user_graded` | Updates local grades |
+
+#### Webhook Endpoint
+```
+POST https://your-lms.com/api/moodle/webhook
+
+Headers:
+  X-Moodle-Signature: {hmac-signature}
+
+Body:
+{
+  "eventname": "\\core\\event\\user_graded",
+  "objecttable": "grade_grades",
+  "objectid": 12345,
+  "other": {
+    "userid": 123,
+    "courseid": 456
+  }
+}
+```
+
+---
+
+### Step-by-Step Sync Guide
+
+#### Initial Setup Sync (First Time)
+
+```
+Step 1: Configure Moodle connection
+─────────────────────────────────
+Set MOODLE_URL and MOODLE_TOKEN in .env
+
+Step 2: Test connection
+─────────────────────────────────
+GET /api/moodle/test-connection
+→ Should return: { "success": true, "coursesCount": X }
+
+Step 3: Import existing Moodle courses
+─────────────────────────────────
+GET /api/moodle/courses (list available)
+POST /api/moodle/import-course (import each)
+
+Step 4: Run full sync
+─────────────────────────────────
+POST /api/moodle/full-sync
+→ Syncs all enrollments and grades
+```
+
+#### Daily Operations
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     RECOMMENDED SYNC WORKFLOW                    │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Users & Enrollments: Automatic                                  │
+│  ─────────────────────────────────                               │
+│  → Changes sync immediately when actions occur                   │
+│                                                                  │
+│  Grades: Manual or Scheduled                                     │
+│  ────────────────────────────                                    │
+│  → Teachers: Grades push to Moodle when entered                  │
+│  → Students: View grades page pulls from Moodle                  │
+│  → Admin: Run full sync daily for comprehensive update           │
+│                                                                  │
+│  Courses: On Creation/Edit                                       │
+│  ──────────────────────────                                      │
+│  → New courses sync to Moodle automatically                      │
+│  → Import new Moodle courses via admin dashboard                 │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Sync Status & History
+
+#### Check Sync Status
+```bash
+# Test Moodle connection
+GET /api/moodle/test-connection
+
+# Response:
+{
+  "success": true,
+  "message": "Successfully connected to Moodle",
+  "data": {
+    "coursesCount": 15,
+    "moodleUrl": "https://moodle.example.com"
+  }
+}
+```
+
+#### View Sync History
+```bash
+# Get recent sync operations
+GET /api/moodle/sync-history?limit=50
+
+# Filter by type
+GET /api/moodle/sync-history?syncType=course&status=completed
+
+# Response:
+[
+  {
+    "syncType": "course",
+    "direction": "to_moodle",
+    "status": "completed",
+    "entityId": "64def456...",
+    "moodleId": 456,
+    "changes": [
+      { "field": "title", "oldValue": "Old Name", "newValue": "New Name" }
+    ],
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+---
+
+### Sync Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| "Moodle API Error" | Check MOODLE_TOKEN is valid and has required permissions |
+| "User not synced" | Run `POST /api/users/:id/sync-moodle` |
+| "Course not in Moodle" | Run `POST /api/courses/:id/sync-moodle` |
+| "Grades not updating" | Ensure user and course are both synced first |
+| "Webhook not working" | Check MOODLE_WEBHOOK_SECRET matches Moodle config |
+
+#### Debug Mode
+Set `NODE_ENV=development` to see detailed sync logs in console.
+
+---
+
+### Code Examples
+
+#### JavaScript/Frontend
+```javascript
+import { moodleAPI, courseAPI, userAPI } from './services/api';
+
+// Test connection
+const testConnection = async () => {
+  const response = await moodleAPI.testConnection();
+  console.log('Connected:', response.data.success);
+};
+
+// Sync a course
+const syncCourse = async (courseId) => {
+  await courseAPI.syncWithMoodle(courseId, 'bidirectional');
+};
+
+// Import from Moodle
+const importCourse = async (moodleCourseId) => {
+  await moodleAPI.importCourse(moodleCourseId);
+};
+
+// Full sync
+const fullSync = async () => {
+  await moodleAPI.fullSync();
+};
+```
+
+#### cURL Examples
+```bash
+# Test connection
+curl -X GET http://localhost:5000/api/moodle/test-connection \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Sync user to Moodle
+curl -X POST http://localhost:5000/api/users/USER_ID/sync-moodle \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"direction": "to_moodle"}'
+
+# Full sync
+curl -X POST http://localhost:5000/api/moodle/full-sync \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
 ## Moodle Web Services API Reference
 
 This LMS uses the following **20 Moodle Web Services API functions** for two-way data synchronization:
