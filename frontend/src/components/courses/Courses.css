@@ -1,0 +1,372 @@
+/* Courses Header */
+.courses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.courses-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Courses Grid */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Course Card */
+.course-card {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.course-image {
+  height: 160px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-image-placeholder {
+  font-size: 48px;
+}
+
+.course-info {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.course-code {
+  font-size: 13px;
+  color: var(--primary-color);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.course-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+/* Progress Bar */
+.course-progress {
+  margin-top: auto;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e4e6eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.course-grade {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* Course Detail */
+.course-detail-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.course-detail-header {
+  margin-bottom: 24px;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--primary-color);
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.course-detail-info h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.course-detail-info p {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.instructor {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Course Content */
+.course-content .content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.course-content h2 {
+  font-size: 20px;
+}
+
+.sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-card {
+  padding: 20px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.section-summary {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.module-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: var(--radius);
+}
+
+.module-icon {
+  font-size: 20px;
+}
+
+.module-item a {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.module-item a:hover {
+  text-decoration: underline;
+}
+
+/* Participants */
+.course-participants h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.participants-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.participant-item:hover {
+  background: #f8f9fa;
+}
+
+.participant-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.participant-name {
+  font-weight: 500;
+}
+
+.participant-role {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+/* Moodle Connect */
+.moodle-connect {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.connect-card,
+.connected-card {
+  padding: 32px;
+}
+
+.connect-card h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.connect-card > p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.connect-form {
+  margin-bottom: 24px;
+}
+
+.form-help {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.connect-info {
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.connect-info h4 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.connect-info ul {
+  list-style: none;
+}
+
+.connect-info li {
+  padding: 8px 0;
+  color: var(--text-secondary);
+}
+
+/* Connected Card */
+.connected-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.connected-icon {
+  font-size: 40px;
+}
+
+.connected-header h3 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.connected-header p {
+  color: var(--text-secondary);
+}
+
+.moodle-user-info {
+  background: #f8f9fa;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.info-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.info-value {
+  font-weight: 500;
+}
+
+.connected-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 20px 0;
+}
+
+.course-discussion {
+  max-width: 680px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .courses-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .connected-actions {
+    flex-direction: column;
+  }
+}
