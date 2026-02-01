@@ -1,69 +1,33 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
-};
-
-// @desc    Register a new user
-// @route   POST /api/users/register
+// @desc    Join chat with username (create user if not exists)
+// @route   POST /api/users/join
 // @access  Public
-const registerUser = async (req, res) => {
+const joinChat = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { username } = req.body;
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+    if (!username || username.trim().length < 2) {
+      return res.status(400).json({ message: 'Username must be at least 2 characters' });
     }
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+    const normalizedUsername = username.trim().toLowerCase();
+
+    // Find or create user
+    let user = await User.findOne({ username: normalizedUsername });
+    
+    if (!user) {
+      user = await User.create({
+        username: normalizedUsername,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(normalizedUsername)}&background=random`,
+      });
+    }
+
+    res.json({
+      _id: user._id,
+      username: user.username,
+      avatar: user.avatar,
     });
-
-    if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        token: generateToken(user._id),
-      });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Login user
-// @route   POST /api/users/login
-// @access  Public
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Find user by email
-    const user = await User.findOne({ email }).select('+password');
-
-    if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
-    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -75,17 +39,11 @@ const loginUser = async (req, res) => {
 const searchUsers = async (req, res) => {
   try {
     const keyword = req.query.search
-      ? {
-          $or: [
-            { name: { $regex: req.query.search, $options: 'i' } },
-            { email: { $regex: req.query.search, $options: 'i' } },
-          ],
-        }
+      ? { username: { $regex: req.query.search, $options: 'i' } }
       : {};
 
     const users = await User.find(keyword)
-      .find({ _id: { $ne: req.user._id } })
-      .select('-password');
+      .find({ _id: { $ne: req.user._id } });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -101,8 +59,7 @@ const getUserProfile = async (req, res) => {
     if (user) {
       res.json({
         _id: user._id,
-        name: user.name,
-        email: user.email,
+        username: user.username,
         avatar: user.avatar,
       });
     } else {
@@ -113,4 +70,4 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, searchUsers, getUserProfile };
+module.exports = { joinChat, searchUsers, getUserProfile };

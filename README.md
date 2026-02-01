@@ -4,7 +4,7 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 
 ## Features
 
-- 🔐 **User Authentication** - Register and login with JWT authentication
+- 👤 **Simple Username Login** - Just enter a username to start chatting
 - 💬 **Real-time Messaging** - Instant message delivery using Socket.io
 - 👥 **One-on-One Chats** - Private conversations between users
 - 👨‍👩‍👧‍👦 **Group Chats** - Create and manage group conversations
@@ -20,8 +20,7 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 - Node.js & Express.js
 - MongoDB with Mongoose
 - Socket.io for real-time communication
-- JWT for authentication
-- bcryptjs for password hashing
+- Simple user identification (no passwords)
 
 ### Frontend
 - React.js
@@ -37,14 +36,14 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 │   ├── config/
 │   │   └── db.js              # MongoDB connection
 │   ├── controllers/
-│   │   ├── userController.js   # User authentication & search
+│   │   ├── userController.js   # User join & search
 │   │   ├── chatController.js   # Chat management
 │   │   ├── messageController.js # Message handling
 │   │   └── notificationController.js # Notification management
 │   ├── middleware/
-│   │   └── authMiddleware.js   # JWT authentication middleware
+│   │   └── authMiddleware.js   # User identification middleware
 │   ├── models/
-│   │   ├── User.js            # User model
+│   │   ├── User.js            # User model (username only)
 │   │   ├── Chat.js            # Chat model
 │   │   ├── Message.js         # Message model
 │   │   └── Notification.js    # Notification model
@@ -67,8 +66,7 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 │   │   ├── context/
 │   │   │   └── ChatContext.js  # Global state management
 │   │   ├── pages/
-│   │   │   ├── Login.js
-│   │   │   ├── Register.js
+│   │   │   ├── Login.js        # Username entry page
 │   │   │   └── Chat.js
 │   │   ├── App.js
 │   │   ├── index.js
@@ -107,7 +105,6 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
    ```
    PORT=5000
    MONGODB_URI=mongodb://localhost:27017/mern-chat
-   JWT_SECRET=your_secret_key_here
    NODE_ENV=development
    CLIENT_URL=http://localhost:3000
    ```
@@ -144,9 +141,8 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 ## API Endpoints
 
 ### Users
-- `POST /api/users/register` - Register a new user
-- `POST /api/users/login` - Login user
-- `GET /api/users` - Search users (protected)
+- `POST /api/users/join` - Join chat with username (creates user if not exists)
+- `GET /api/users` - Search users (protected with X-User-Id header)
 - `GET /api/users/profile` - Get user profile (protected)
 
 ### Chats
@@ -168,6 +164,14 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 - `PUT /api/notifications/chat/:chatId` - Mark chat notifications as read (protected)
 - `DELETE /api/notifications/:id` - Delete notification (protected)
 - `GET /api/notifications/unread/count` - Get unread count (protected)
+
+## Authentication
+
+This app uses a simple username-based identification system:
+- Users join by entering a username (no password required)
+- If the username exists, the existing user is returned
+- If the username doesn't exist, a new user is created
+- Protected routes require an `X-User-Id` header with the user's MongoDB ObjectId
 
 ## Socket.io Events
 
@@ -192,7 +196,7 @@ A full-featured real-time chat application built with the MERN stack (MongoDB, E
 ## Screenshots
 
 The application includes:
-- Login/Register pages with gradient design
+- Simple username entry page
 - Chat sidebar with search and notifications
 - Real-time messaging interface
 - Group chat creation modal

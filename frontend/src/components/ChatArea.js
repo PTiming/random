@@ -28,7 +28,7 @@ function ChatArea() {
       try {
         const config = {
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            'X-User-Id': user._id,
           },
         };
         const { data } = await axios.get(
@@ -118,7 +118,7 @@ function ChatArea() {
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
+          'X-User-Id': user._id,
         },
       };
 
@@ -167,7 +167,7 @@ function ChatArea() {
     if (!selectedChat) return '';
     if (selectedChat.isGroupChat) return selectedChat.chatName;
     const otherUser = selectedChat.users.find((u) => u._id !== user._id);
-    return otherUser?.name || 'Unknown';
+    return otherUser?.username || 'Unknown';
   };
 
   const isUserOnline = () => {
@@ -280,7 +280,7 @@ function ChatArea() {
                         {selectedChat.isGroupChat &&
                           message.sender._id !== user._id && (
                             <div className="message-sender">
-                              {message.sender.name}
+                              {message.sender.username}
                             </div>
                           )}
                         <div className="message-text">{message.content}</div>

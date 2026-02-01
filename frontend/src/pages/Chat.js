@@ -17,7 +17,7 @@ function Chat() {
       try {
         const config = {
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            'X-User-Id': user._id,
           },
         };
         const { data } = await axios.get(`${API_URL}/api/chats`, config);

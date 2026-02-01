@@ -1,23 +1,22 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Simple user identification middleware using X-User-Id header
 const protect = async (req, res, next) => {
-  let token;
+  const userId = req.headers['x-user-id'];
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+  if (!userId) {
+    return res.status(401).json({ message: 'Not authorized, no user ID' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
     }
-  } else {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, invalid user ID' });
   }
 };
 

@@ -32,8 +32,8 @@ function NotificationDropdown({ onClose }) {
   };
 
   const getSenderName = (notification) => {
-    if (notification.message?.sender?.name) {
-      return notification.message.sender.name;
+    if (notification.message?.sender?.username) {
+      return notification.message.sender.username;
     }
     return 'Someone';
   };

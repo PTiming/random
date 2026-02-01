@@ -36,7 +36,7 @@ function Sidebar({ showNotifications, setShowNotifications }) {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          'X-User-Id': user._id,
         },
       };
       const { data } = await axios.get(
@@ -56,7 +56,7 @@ function Sidebar({ showNotifications, setShowNotifications }) {
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
+          'X-User-Id': user._id,
         },
       };
       const { data } = await axios.post(
@@ -87,7 +87,7 @@ function Sidebar({ showNotifications, setShowNotifications }) {
   const getChatName = (chat) => {
     if (chat.isGroupChat) return chat.chatName;
     const otherUser = chat.users.find((u) => u._id !== user._id);
-    return otherUser?.name || 'Unknown';
+    return otherUser?.username || 'Unknown';
   };
 
   const getChatAvatar = (chat) => {
@@ -162,12 +162,11 @@ function Sidebar({ showNotifications, setShowNotifications }) {
                 >
                   <img
                     src={result.avatar}
-                    alt={result.name}
+                    alt={result.username}
                     className="search-result-avatar"
                   />
                   <div className="search-result-info">
-                    <h4>{result.name}</h4>
-                    <p>{result.email}</p>
+                    <h4>{result.username}</h4>
                   </div>
                 </div>
               ))
@@ -199,7 +198,7 @@ function Sidebar({ showNotifications, setShowNotifications }) {
                 <div className="chat-name">{getChatName(chat)}</div>
                 <div className="chat-last-message">
                   {chat.latestMessage
-                    ? `${chat.latestMessage.sender?.name === user.name ? 'You: ' : ''}${chat.latestMessage.content}`
+                    ? `${chat.latestMessage.sender?.username === user.username ? 'You: ' : ''}${chat.latestMessage.content}`
                     : 'No messages yet'}
                 </div>
               </div>
@@ -249,7 +248,7 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
     try {
       const config = {
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          'X-User-Id': user._id,
         },
       };
       const { data } = await axios.get(
@@ -290,7 +289,7 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
+          'X-User-Id': user._id,
         },
       };
       const { data } = await axios.post(
@@ -343,7 +342,7 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
           <div className="selected-users">
             {selectedUsers.map((u) => (
               <span key={u._id} className="selected-user-tag">
-                {u.name}
+                {u.username}
                 <button onClick={() => removeUser(u._id)}>&times;</button>
               </span>
             ))}
@@ -360,12 +359,12 @@ function GroupChatModal({ onClose, user, setChats, chats }) {
               >
                 <img
                   src={result.avatar}
-                  alt={result.name}
+                  alt={result.username}
                   className="search-result-avatar"
                   style={{ width: 30, height: 30 }}
                 />
                 <div className="search-result-info">
-                  <h4 style={{ fontSize: 13 }}>{result.name}</h4>
+                  <h4 style={{ fontSize: 13 }}>{result.username}</h4>
                 </div>
               </div>
             ))}
