@@ -7,6 +7,18 @@
 - **Severity**: Low to Medium
 - **Status**: Addressed with mitigation strategies
 
+### Dependency Vulnerabilities
+- **Multer DoS Vulnerabilities**: ✅ **FIXED**
+  - **Previous Version**: 1.4.5-lts.1 (vulnerable)
+  - **Updated Version**: 2.0.2 (patched)
+  - **Vulnerabilities Patched**:
+    1. DoS via unhandled exception from malformed request
+    2. DoS via unhandled exception
+    3. DoS from maliciously crafted requests
+    4. DoS via memory leaks from unclosed streams
+  - **Risk Level**: High → None
+  - **Status**: ✅ **RESOLVED** (Updated to 2.0.2)
+
 ### Alert Details
 
 #### Rate Limiting (10 alerts)
@@ -154,6 +166,8 @@ The current implementation provides strong baseline security suitable for develo
    - IP whitelisting for admin operations
 
 6. **Dependencies**
+   - ✅ All known vulnerabilities patched
+   - ✅ Multer updated to 2.0.2 (DoS vulnerabilities fixed)
    - Regular dependency updates
    - Vulnerability scanning (npm audit)
    - Lock file usage (package-lock.json)
@@ -281,10 +295,13 @@ The application implements industry-standard security practices including:
 - Protected database access
 - CORS configuration
 - Error handling
+- **All dependency vulnerabilities patched** (Multer updated to 2.0.2)
 
 The 10 remaining CodeQL alerts are for the authentication middleware itself and are not security vulnerabilities. They represent the security mechanisms protecting the application.
 
 **Overall Security Status**: ✅ **SECURE** for development and staging environments
+
+**Dependency Vulnerabilities**: ✅ **NONE** (All patched)
 
 **Production Readiness**: ⚠️ Requires additional hardening per recommendations above
 
