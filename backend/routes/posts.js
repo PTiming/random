@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, optionalAuth } = require('../middleware/auth');
+const { apiLimiter, createPostLimiter } = require('../middleware/rateLimiter');
 const upload = require('../middleware/upload');
 const {
   createPost,
@@ -16,14 +17,17 @@ const {
   searchPosts
 } = require('../controllers/postController');
 
+// Apply rate limiting to all routes
+router.use(apiLimiter);
+
 // Public routes
 router.get('/search', searchPosts);
 router.get('/', optionalAuth, getPosts);
 router.get('/:id', getPost);
 router.get('/user/:userId', optionalAuth, getUserPosts);
 
-// Protected routes
-router.post('/', protect, upload.array('images', 5), createPost);
+// Protected routes with stricter limits for creating content
+router.post('/', protect, createPostLimiter, upload.array('images', 5), createPost);
 router.put('/:id', protect, updatePost);
 router.delete('/:id', protect, deletePost);
 router.post('/:id/like', protect, likePost);

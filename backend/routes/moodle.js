@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { apiLimiter } = require('../middleware/rateLimiter');
 const {
   connectMoodle,
   disconnectMoodle,
@@ -11,8 +12,9 @@ const {
   getAssignments
 } = require('../controllers/moodleController');
 
-// All Moodle routes require authentication
+// All Moodle routes require authentication and rate limiting
 router.use(protect);
+router.use(apiLimiter);
 
 // Connection management
 router.post('/connect', connectMoodle);

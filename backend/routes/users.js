@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { apiLimiter } = require('../middleware/rateLimiter');
 const upload = require('../middleware/upload');
 const {
   getUsers,
@@ -13,6 +14,9 @@ const {
   getFollowing,
   searchUsers
 } = require('../controllers/userController');
+
+// Apply rate limiting to all routes
+router.use(apiLimiter);
 
 // Public routes
 router.get('/', getUsers);

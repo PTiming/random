@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { apiLimiter } = require('../middleware/rateLimiter');
 const {
   getCourses,
   getCourse,
@@ -9,6 +10,9 @@ const {
   searchCourses,
   getCourseParticipants
 } = require('../controllers/courseController');
+
+// Apply rate limiting to all routes
+router.use(apiLimiter);
 
 // Public routes
 router.get('/', getCourses);

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
+const { authLimiter, apiLimiter } = require('../middleware/rateLimiter');
 const {
   register,
   login,
@@ -34,11 +35,11 @@ const loginValidation = [
     .withMessage('Password is required')
 ];
 
-// Routes
-router.post('/register', registerValidation, register);
-router.post('/login', loginValidation, login);
-router.get('/me', protect, getMe);
-router.put('/password', protect, updatePassword);
-router.post('/logout', protect, logout);
+// Routes with rate limiting
+router.post('/register', authLimiter, registerValidation, register);
+router.post('/login', authLimiter, loginValidation, login);
+router.get('/me', apiLimiter, protect, getMe);
+router.put('/password', apiLimiter, protect, updatePassword);
+router.post('/logout', apiLimiter, protect, logout);
 
 module.exports = router;
