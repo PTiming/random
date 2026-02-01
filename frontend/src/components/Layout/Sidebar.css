@@ -1,0 +1,178 @@
+.sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 280px;
+  height: calc(100vh - 64px);
+  background-color: var(--white);
+  border-right: 1px solid var(--gray-200);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-profile {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  transition: background-color 0.2s;
+}
+
+.profile-link:hover {
+  background-color: var(--gray-50);
+}
+
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.profile-avatar.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-username {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+}
+
+.sidebar-nav {
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--gray-600);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s;
+  margin-bottom: 0.25rem;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background-color: var(--gray-50);
+  color: var(--gray-900);
+}
+
+.sidebar-link.active {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.sidebar-icon {
+  font-size: 1.25rem;
+}
+
+.sidebar-moodle {
+  background-color: var(--gray-50);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.moodle-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--success-color);
+  margin-bottom: 0.75rem;
+}
+
+.moodle-icon {
+  font-size: 1rem;
+}
+
+.moodle-quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--gray-600);
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.quick-link:hover {
+  background-color: var(--white);
+  color: var(--primary-color);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.copyright {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-bottom: 0.5rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.footer-links a {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--primary-color);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+}
