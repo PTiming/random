@@ -18,6 +18,169 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
 - **Webhook Support**: Real-time sync when changes occur in Moodle
 - **Manual Sync**: On-demand sync for individual entities or full system
 
+---
+
+## 👤 Features by Account Type
+
+### 🎓 Student Account
+
+| Feature | Description | API Endpoint |
+|---------|-------------|--------------|
+| **Register** | Create account (syncs to Moodle) | `POST /api/auth/register` |
+| **Login** | Authenticate and get JWT token | `POST /api/auth/login` |
+| **View Profile** | See own profile details | `GET /api/auth/me` |
+| **Update Profile** | Edit name, email (syncs to Moodle) | `PUT /api/auth/profile` |
+| **Change Password** | Update password | `PUT /api/auth/password` |
+| **Browse Courses** | View all published courses | `GET /api/courses` |
+| **View Course Details** | See course info, modules | `GET /api/courses/:id` |
+| **Self-Enroll** | Enroll in a course (syncs to Moodle) | `POST /api/courses/:id/enroll` |
+| **Unenroll** | Leave a course (syncs to Moodle) | `DELETE /api/courses/:id/enroll` |
+| **View My Grades** | See grades across all courses | `GET /api/grades/my-grades` |
+| **View Course Grades** | See grades for specific course | `GET /api/grades/course/:courseId` |
+
+**Moodle APIs Used (Student):**
+- `core_user_create_users` - Account creation
+- `core_user_update_users` - Profile updates
+- `enrol_manual_enrol_users` - Course enrollment
+- `enrol_manual_unenrol_users` - Unenrollment
+- `gradereport_user_get_grades_table` - View grades
+- `core_completion_get_course_completion_status` - View progress
+
+---
+
+### 👨‍🏫 Teacher/Instructor Account
+
+*Includes all Student features, plus:*
+
+| Feature | Description | API Endpoint |
+|---------|-------------|--------------|
+| **Create Course** | Create new course (syncs to Moodle) | `POST /api/courses` |
+| **Edit Course** | Update course details (syncs to Moodle) | `PUT /api/courses/:id` |
+| **Delete Course** | Remove own course | `DELETE /api/courses/:id` |
+| **View Students** | See enrolled students in course | `GET /api/courses/:id/students` |
+| **Enroll Student** | Add student to course | `POST /api/courses/:id/enroll` |
+| **Remove Student** | Unenroll student from course | `DELETE /api/courses/:id/enroll` |
+| **View All Grades** | See all student grades in course | `GET /api/grades/course/:courseId/all` |
+| **Enter Grade** | Create/update student grade (syncs to Moodle) | `POST /api/grades` |
+| **Update Grade** | Modify existing grade | `PUT /api/grades/:id` |
+| **Delete Grade** | Remove a grade | `DELETE /api/grades/:id` |
+| **Sync Course** | Manual sync with Moodle | `POST /api/courses/:id/sync-moodle` |
+| **View Moodle Courses** | List available Moodle courses | `GET /api/moodle/courses` |
+| **Import Course** | Import course from Moodle | `POST /api/moodle/import-course` |
+| **Sync Grades** | Pull grades from Moodle | `POST /api/grades/sync-moodle` |
+
+**Additional Moodle APIs Used (Teacher):**
+- `core_course_create_courses` - Create courses
+- `core_course_update_courses` - Update courses
+- `core_enrol_get_enrolled_users` - View class roster
+- `core_grades_update_grades` - Enter grades
+- `mod_assign_get_assignments` - View assignments
+- `mod_assign_get_submissions` - View submissions
+
+---
+
+### 🔧 Admin Account
+
+*Includes all Student and Teacher features, plus:*
+
+| Feature | Description | API Endpoint |
+|---------|-------------|--------------|
+| **List All Users** | View all users in system | `GET /api/users` |
+| **View Any User** | See any user's details | `GET /api/users/:id` |
+| **Update Any User** | Edit any user's profile | `PUT /api/users/:id` |
+| **Deactivate User** | Disable a user account | `DELETE /api/users/:id` |
+| **Sync Any User** | Sync any user with Moodle | `POST /api/users/:id/sync-moodle` |
+| **Test Connection** | Test Moodle API connection | `GET /api/moodle/test-connection` |
+| **View Sync History** | See all sync operations | `GET /api/moodle/sync-history` |
+| **Full System Sync** | Sync all data with Moodle | `POST /api/moodle/full-sync` |
+
+**Additional Moodle APIs Used (Admin):**
+- `core_user_get_users` - Search all users
+- `core_user_delete_users` - Delete users
+- `core_course_delete_courses` - Delete courses
+
+---
+
+### Feature Comparison Table
+
+| Feature | Student | Teacher | Admin |
+|---------|:-------:|:-------:|:-----:|
+| Register/Login | ✅ | ✅ | ✅ |
+| Update own profile | ✅ | ✅ | ✅ |
+| Browse courses | ✅ | ✅ | ✅ |
+| Self-enroll in courses | ✅ | ✅ | ✅ |
+| View own grades | ✅ | ✅ | ✅ |
+| Create courses | ❌ | ✅ | ✅ |
+| Edit own courses | ❌ | ✅ | ✅ |
+| Delete own courses | ❌ | ✅ | ✅ |
+| Manage enrollments | ❌ | ✅ | ✅ |
+| Enter/edit grades | ❌ | ✅ | ✅ |
+| View class roster | ❌ | ✅ | ✅ |
+| Import Moodle courses | ❌ | ✅ | ✅ |
+| Sync courses with Moodle | ❌ | ✅ | ✅ |
+| Manage all users | ❌ | ❌ | ✅ |
+| Delete any course | ❌ | ❌ | ✅ |
+| View sync history | ❌ | ❌ | ✅ |
+| Full system sync | ❌ | ❌ | ✅ |
+| Test Moodle connection | ❌ | ❌ | ✅ |
+
+---
+
+### Account Permissions by Route
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ROUTE PERMISSIONS                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  PUBLIC (No Auth Required)                                                  │
+│  ─────────────────────────                                                  │
+│  POST /api/auth/register     - Anyone can register                          │
+│  POST /api/auth/login        - Anyone can login                             │
+│  GET  /api/courses           - Anyone can browse courses                    │
+│  GET  /api/courses/:id       - Anyone can view course details               │
+│                                                                             │
+│  AUTHENTICATED (Any logged-in user)                                         │
+│  ──────────────────────────────────                                         │
+│  GET  /api/auth/me           - View own profile                             │
+│  PUT  /api/auth/profile      - Update own profile                           │
+│  PUT  /api/auth/password     - Change own password                          │
+│  POST /api/courses/:id/enroll  - Enroll in course                           │
+│  DELETE /api/courses/:id/enroll - Unenroll from course                      │
+│  GET  /api/grades/my-grades  - View own grades                              │
+│  GET  /api/grades/course/:id - View own course grades                       │
+│                                                                             │
+│  INSTRUCTOR/ADMIN ONLY                                                      │
+│  ─────────────────────                                                      │
+│  POST /api/courses           - Create course                                │
+│  PUT  /api/courses/:id       - Update course                                │
+│  DELETE /api/courses/:id     - Delete course                                │
+│  GET  /api/courses/:id/students - View enrolled students                    │
+│  POST /api/grades            - Create grade                                 │
+│  PUT  /api/grades/:id        - Update grade                                 │
+│  DELETE /api/grades/:id      - Delete grade                                 │
+│  GET  /api/grades/course/:id/all - View all grades                          │
+│  POST /api/grades/sync-moodle - Sync grades from Moodle                     │
+│  GET  /api/moodle/courses    - List Moodle courses                          │
+│  POST /api/moodle/import-course - Import from Moodle                        │
+│  POST /api/courses/:id/sync-moodle - Sync course                            │
+│                                                                             │
+│  ADMIN ONLY                                                                 │
+│  ──────────                                                                 │
+│  GET  /api/users             - List all users                               │
+│  GET  /api/users/:id         - View any user                                │
+│  PUT  /api/users/:id         - Update any user                              │
+│  DELETE /api/users/:id       - Deactivate user                              │
+│  POST /api/users/:id/sync-moodle - Sync any user                            │
+│  GET  /api/moodle/test-connection - Test Moodle                             │
+│  GET  /api/moodle/sync-history - View sync logs                             │
+│  POST /api/moodle/full-sync  - Full system sync                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Tech Stack
 
 ### Backend
