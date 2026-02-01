@@ -6,3 +6,4 @@ client/build/
 *.log
 dist/
 build/
+demo/
