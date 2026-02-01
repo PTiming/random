@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/database');
 const routes = require('./routes');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -22,6 +23,9 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+// Apply general rate limiting to all API routes
+app.use('/api', apiLimiter);
 
 // API routes
 app.use('/api', routes);

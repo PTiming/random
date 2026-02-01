@@ -27,11 +27,12 @@ exports.verifyMoodleWebhook = (req, res, next) => {
     const body = JSON.stringify(req.body);
     const expectedSignature = hmac.update(body).digest('hex');
 
-    // Compare signatures
-    if (!crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    )) {
+    // Compare signatures (with length check to prevent timing attacks)
+    const signatureBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expectedSignature);
+    
+    if (signatureBuffer.length !== expectedBuffer.length ||
+        !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
       return res.status(401).json({
         success: false,
         message: 'Invalid webhook signature'

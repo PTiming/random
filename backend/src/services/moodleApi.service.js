@@ -346,13 +346,22 @@ class MoodleApiService {
   // ============ HELPER FUNCTIONS ============
 
   /**
-   * Generate a random password
+   * Generate a cryptographically secure random password using rejection sampling
    */
   generatePassword() {
+    const crypto = require('crypto');
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    const charsLength = chars.length;
+    // Use rejection sampling to avoid modulo bias
+    const maxValidValue = Math.floor(256 / charsLength) * charsLength;
+    
     let password = '';
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    while (password.length < 12) {
+      const randomByte = crypto.randomBytes(1)[0];
+      // Reject values that would cause modulo bias
+      if (randomByte < maxValidValue) {
+        password += chars.charAt(randomByte % charsLength);
+      }
     }
     return password;
   }

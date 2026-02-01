@@ -8,10 +8,11 @@ const {
   changePassword
 } = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
 
-// Public routes
-router.post('/register', register);
-router.post('/login', login);
+// Public routes with rate limiting
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
 
 // Protected routes
 router.get('/me', protect, getMe);
