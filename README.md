@@ -137,20 +137,7 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
 ### Create External Service
 
 1. Go to **Site administration > Plugins > Web services > External services**
-2. Add a new service with required functions:
-   - `core_user_create_users`
-   - `core_user_update_users`
-   - `core_user_get_users`
-   - `core_user_get_users_by_field`
-   - `core_course_get_courses`
-   - `core_course_get_courses_by_field`
-   - `core_course_create_courses`
-   - `core_course_update_courses`
-   - `enrol_manual_enrol_users`
-   - `enrol_manual_unenrol_users`
-   - `core_enrol_get_enrolled_users`
-   - `core_enrol_get_users_courses`
-   - `gradereport_user_get_grades_table`
+2. Add a new service with all required functions listed below
 
 ### Create Token
 
@@ -163,6 +150,143 @@ A full-stack Learning Management System built with the MERN stack (MongoDB, Expr
 1. Install a Moodle webhook plugin
 2. Configure webhooks to POST to `https://your-lms-domain.com/api/moodle/webhook`
 3. Set the webhook secret in your `.env` file
+
+## Moodle Web Services API Reference
+
+This LMS uses the following **20 Moodle Web Services API functions** for two-way data synchronization:
+
+### User Management APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `core_user_create_users` | Create new users in Moodle | Sync new LMS users to Moodle |
+| `core_user_update_users` | Update existing user details | Sync user profile changes to Moodle |
+| `core_user_get_users` | Search and retrieve users | Query Moodle users |
+| `core_user_get_users_by_field` | Get users by specific field (id, email, username) | Find users for sync matching |
+| `core_user_delete_users` | Delete users from Moodle | Remove synced users (configured but not actively used) |
+
+### Course Management APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `core_course_get_courses` | Get all courses from Moodle | List available Moodle courses for import |
+| `core_course_get_courses_by_field` | Get courses by field (id, shortname) | Find specific courses for sync |
+| `core_course_create_courses` | Create new courses in Moodle | Export LMS courses to Moodle |
+| `core_course_update_courses` | Update existing course details | Sync course changes to Moodle |
+| `core_course_delete_courses` | Delete courses from Moodle | Remove synced courses (configured but not actively used) |
+
+### Enrollment Management APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `enrol_manual_enrol_users` | Enroll users in courses | Sync enrollments to Moodle |
+| `enrol_manual_unenrol_users` | Unenroll users from courses | Sync unenrollments to Moodle |
+| `core_enrol_get_enrolled_users` | Get all enrolled users in a course | Import enrollments from Moodle |
+| `core_enrol_get_users_courses` | Get all courses a user is enrolled in | Check user's Moodle enrollments |
+
+### Grade Management APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `core_grades_get_grades` | Get grades for specific items/users | Fetch detailed grade data |
+| `core_grades_update_grades` | Update grade values | Push grades to Moodle (configured for future use) |
+| `gradereport_user_get_grades_table` | Get full gradebook table for a user | Import comprehensive grades from Moodle |
+
+### Assignment APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `mod_assign_get_assignments` | Get assignments for courses | Fetch course assignments from Moodle |
+| `mod_assign_get_submissions` | Get assignment submissions | Fetch student submissions from Moodle |
+
+### Completion Tracking APIs
+
+| API Function | Description | Usage in LMS |
+|-------------|-------------|--------------|
+| `core_completion_get_course_completion_status` | Get course completion status | Track student progress from Moodle |
+| `core_completion_get_activities_completion_status` | Get activity completion status | Track activity-level progress |
+
+### API Request Format
+
+All API calls are made via POST to Moodle's Web Services endpoint:
+```
+POST {MOODLE_URL}/webservice/rest/server.php
+```
+
+With parameters:
+```
+wstoken: {your-token}
+wsfunction: {function-name}
+moodlewsrestformat: json
+{...function-specific-params}
+```
+
+### Example API Calls
+
+**Create User:**
+```javascript
+// Function: core_user_create_users
+params: {
+  'users[0][username]': 'john.doe',
+  'users[0][email]': 'john@example.com',
+  'users[0][firstname]': 'John',
+  'users[0][lastname]': 'Doe',
+  'users[0][password]': 'SecurePass123!',
+  'users[0][auth]': 'manual'
+}
+```
+
+**Create Course:**
+```javascript
+// Function: core_course_create_courses
+params: {
+  'courses[0][fullname]': 'Introduction to Programming',
+  'courses[0][shortname]': 'PROG101',
+  'courses[0][categoryid]': 1,
+  'courses[0][summary]': 'Learn programming basics',
+  'courses[0][format]': 'topics',
+  'courses[0][visible]': 1,
+  'courses[0][startdate]': 1704067200,  // Unix timestamp
+  'courses[0][enddate]': 1735689600
+}
+```
+
+**Enroll User:**
+```javascript
+// Function: enrol_manual_enrol_users
+params: {
+  'enrolments[0][userid]': 123,      // Moodle user ID
+  'enrolments[0][courseid]': 456,    // Moodle course ID
+  'enrolments[0][roleid]': 5         // 5=student, 3=teacher
+}
+```
+
+**Get Course Grades:**
+```javascript
+// Function: gradereport_user_get_grades_table
+params: {
+  courseid: 456,
+  userid: 123  // Optional: specific user
+}
+```
+
+### Moodle Role IDs
+
+| Role ID | Role Name | Description |
+|---------|-----------|-------------|
+| 1 | Manager | Full administrative access |
+| 3 | Teacher (Editing) | Can edit course content and grade |
+| 4 | Teacher (Non-editing) | Can grade but not edit content |
+| 5 | Student | Standard learner role |
+
+### Required Moodle Capabilities
+
+The web service user needs these capabilities:
+- `moodle/user:create`, `moodle/user:update`, `moodle/user:viewdetails`
+- `moodle/course:create`, `moodle/course:update`, `moodle/course:view`
+- `enrol/manual:enrol`, `enrol/manual:unenrol`
+- `moodle/grade:view`, `moodle/grade:viewall`
+- `mod/assign:view`, `mod/assign:grade`
 
 ## API Endpoints
 
