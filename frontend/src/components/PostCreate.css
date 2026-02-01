@@ -1,0 +1,32 @@
+.post-create {
+  margin-bottom: 20px;
+}
+
+.post-create form {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-create textarea {
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 10px;
+}
+
+.post-create-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sync-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sync-checkbox input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
