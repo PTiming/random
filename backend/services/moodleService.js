@@ -183,13 +183,275 @@ class MoodleService {
     });
   }
 
-  // Submit assignment
+  // ==========================================
+  // WRITE OPERATIONS (Two-Way Data Sync)
+  // ==========================================
+
+  // Make POST request for write operations
+  async makePostRequest(wsfunction, data = {}) {
+    try {
+      const baseUrl = `${this.moodleUrl}/webservice/rest/server.php`;
+      const params = new URLSearchParams({
+        wstoken: this.token,
+        wsfunction,
+        moodlewsrestformat: 'json'
+      });
+
+      const response = await axios.post(`${baseUrl}?${params.toString()}`, data, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+      if (response.data && response.data.exception) {
+        throw new Error(response.data.message || 'Moodle API error');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Moodle POST API Error:', error.message);
+      throw error;
+    }
+  }
+
+  // Submit assignment (text submission)
   async submitAssignment(assignmentId, text) {
-    return await this.makeRequest('mod_assign_save_submission', {
-      assignmentid: assignmentId,
-      'plugindata[onlinetext_editor][text]': text,
-      'plugindata[onlinetext_editor][format]': 1
+    const data = new URLSearchParams();
+    data.append('assignmentid', assignmentId);
+    data.append('plugindata[onlinetext_editor][text]', text);
+    data.append('plugindata[onlinetext_editor][format]', 1);
+
+    return await this.makePostRequest('mod_assign_save_submission', data);
+  }
+
+  // Submit assignment for grading (after saving)
+  async submitAssignmentForGrading(assignmentId) {
+    const data = new URLSearchParams();
+    data.append('assignmentid', assignmentId);
+
+    return await this.makePostRequest('mod_assign_submit_for_grading', data);
+  }
+
+  // Get assignment submission status
+  async getAssignmentSubmissionStatus(assignmentId, userId) {
+    return await this.makeRequest('mod_assign_get_submission_status', {
+      assignid: assignmentId,
+      userid: userId
     });
+  }
+
+  // Create forum discussion
+  async createForumDiscussion(forumId, subject, message, options = {}) {
+    const data = new URLSearchParams();
+    data.append('forumid', forumId);
+    data.append('subject', subject);
+    data.append('message', message);
+    data.append('options[discussionsubscribe]', options.subscribe ? 1 : 0);
+
+    if (options.groupId) {
+      data.append('groupid', options.groupId);
+    }
+
+    return await this.makePostRequest('mod_forum_add_discussion', data);
+  }
+
+  // Reply to forum discussion
+  async replyToForumPost(postId, subject, message) {
+    const data = new URLSearchParams();
+    data.append('postid', postId);
+    data.append('subject', subject);
+    data.append('message', message);
+
+    return await this.makePostRequest('mod_forum_add_discussion_post', data);
+  }
+
+  // Get forum by course module ID
+  async getForumByCourseModule(cmid) {
+    return await this.makeRequest('mod_forum_get_forums_by_courses', {
+      'courseids[]': cmid
+    });
+  }
+
+  // Send instant message to Moodle user
+  async sendInstantMessage(toUserId, text) {
+    const data = new URLSearchParams();
+    data.append('messages[0][touserid]', toUserId);
+    data.append('messages[0][text]', text);
+    data.append('messages[0][textformat]', 1); // HTML format
+
+    return await this.makePostRequest('core_message_send_instant_messages', data);
+  }
+
+  // Send message to conversation
+  async sendMessageToConversation(conversationId, text) {
+    const data = new URLSearchParams();
+    data.append('conversationid', conversationId);
+    data.append('messages[0][text]', text);
+    data.append('messages[0][textformat]', 1);
+
+    return await this.makePostRequest('core_message_send_messages_to_conversation', data);
+  }
+
+  // Create a new conversation (private message)
+  async createConversation(userIds, name = null) {
+    const data = new URLSearchParams();
+    userIds.forEach((id, index) => {
+      data.append(`userids[${index}]`, id);
+    });
+    if (name) {
+      data.append('name', name);
+    }
+    data.append('type', userIds.length > 1 ? 2 : 1); // 1 = individual, 2 = group
+
+    return await this.makePostRequest('core_message_create_conversation', data);
+  }
+
+  // Mark messages as read
+  async markMessagesAsRead(userId, conversationId) {
+    const data = new URLSearchParams();
+    data.append('userid', userId);
+    data.append('conversationid', conversationId);
+
+    return await this.makePostRequest('core_message_mark_all_conversation_messages_as_read', data);
+  }
+
+  // Mark notification as read
+  async markNotificationAsRead(notificationId) {
+    const data = new URLSearchParams();
+    data.append('notificationid', notificationId);
+
+    return await this.makePostRequest('core_message_mark_notification_read', data);
+  }
+
+  // Mark all notifications as read
+  async markAllNotificationsAsRead(userId) {
+    const data = new URLSearchParams();
+    data.append('useridto', userId);
+
+    return await this.makePostRequest('core_message_mark_all_notifications_as_read', data);
+  }
+
+  // Create calendar event
+  async createCalendarEvent(event) {
+    const data = new URLSearchParams();
+    data.append('events[0][name]', event.name);
+    data.append('events[0][description]', event.description || '');
+    data.append('events[0][format]', 1);
+    data.append('events[0][courseid]', event.courseId || 0);
+    data.append('events[0][groupid]', event.groupId || 0);
+    data.append('events[0][repeats]', event.repeats || 0);
+    data.append('events[0][eventtype]', event.eventType || 'user');
+    data.append('events[0][timestart]', event.timeStart);
+    data.append('events[0][timeduration]', event.duration || 0);
+
+    return await this.makePostRequest('core_calendar_create_calendar_events', data);
+  }
+
+  // Delete calendar event
+  async deleteCalendarEvent(eventId, repeat = false) {
+    const data = new URLSearchParams();
+    data.append('events[0][eventid]', eventId);
+    data.append('events[0][repeat]', repeat ? 1 : 0);
+
+    return await this.makePostRequest('core_calendar_delete_calendar_events', data);
+  }
+
+  // Update user profile preferences
+  async updateUserPreferences(userId, preferences) {
+    const data = new URLSearchParams();
+    data.append('userid', userId);
+    
+    preferences.forEach((pref, index) => {
+      data.append(`preferences[${index}][type]`, pref.type);
+      data.append(`preferences[${index}][value]`, pref.value);
+    });
+
+    return await this.makePostRequest('core_user_update_user_preferences', data);
+  }
+
+  // Self-enroll in a course
+  async selfEnrollInCourse(courseId, password = null) {
+    const data = new URLSearchParams();
+    data.append('courseid', courseId);
+    if (password) {
+      data.append('password', password);
+    }
+
+    return await this.makePostRequest('enrol_self_enrol_user', data);
+  }
+
+  // Get self-enrollment instances for a course
+  async getSelfEnrollmentInfo(courseId) {
+    return await this.makeRequest('enrol_self_get_instance_info', {
+      instanceid: courseId
+    });
+  }
+
+  // Upload a file (for assignment submissions)
+  async uploadFile(fileContent, fileName, contextId, component = 'user', fileArea = 'draft', itemId = 0) {
+    const data = new URLSearchParams();
+    data.append('component', component);
+    data.append('filearea', fileArea);
+    data.append('itemid', itemId);
+    data.append('filepath', '/');
+    data.append('filename', fileName);
+    data.append('filecontent', fileContent); // Base64 encoded
+    data.append('contextlevel', 'user');
+    data.append('instanceid', contextId);
+
+    return await this.makePostRequest('core_files_upload', data);
+  }
+
+  // Submit assignment with file
+  async submitAssignmentWithFile(assignmentId, fileItemId) {
+    const data = new URLSearchParams();
+    data.append('assignmentid', assignmentId);
+    data.append('plugindata[files_filemanager]', fileItemId);
+
+    return await this.makePostRequest('mod_assign_save_submission', data);
+  }
+
+  // Add note to user (for teachers/admins)
+  async addUserNote(userId, courseId, text, publishState = 'personal') {
+    const data = new URLSearchParams();
+    data.append('notes[0][userid]', userId);
+    data.append('notes[0][publishstate]', publishState); // 'personal', 'course', 'site'
+    data.append('notes[0][courseid]', courseId);
+    data.append('notes[0][text]', text);
+    data.append('notes[0][format]', 1);
+
+    return await this.makePostRequest('core_notes_create_notes', data);
+  }
+
+  // Complete activity (for completion tracking)
+  async completeActivity(cmid, completed = true) {
+    const data = new URLSearchParams();
+    data.append('cmid', cmid);
+    data.append('completed', completed ? 1 : 0);
+
+    return await this.makePostRequest('core_completion_update_activity_completion_status_manually', data);
+  }
+
+  // Get completion status for course
+  async getCourseCompletionStatus(courseId, userId) {
+    return await this.makeRequest('core_completion_get_course_completion_status', {
+      courseid: courseId,
+      userid: userId
+    });
+  }
+
+  // Rate a forum post
+  async rateForumPost(contextId, component, ratingArea, itemId, rating, scaleId) {
+    const data = new URLSearchParams();
+    data.append('contextlevel', 'module');
+    data.append('instanceid', contextId);
+    data.append('component', component);
+    data.append('ratingarea', ratingArea);
+    data.append('itemid', itemId);
+    data.append('scaleid', scaleId);
+    data.append('rating', rating);
+
+    return await this.makePostRequest('core_rating_add_rating', data);
   }
 }
 

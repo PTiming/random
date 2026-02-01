@@ -353,3 +353,335 @@ exports.syncGradeAchievement = async (req, res) => {
     res.status(500).json({ message: 'Error syncing achievement', error: error.message });
   }
 };
+
+// ==========================================
+// TWO-WAY DATA SYNC - WRITE OPERATIONS
+// ==========================================
+
+// Submit assignment
+exports.submitAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { text, submitForGrading } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    
+    // Save the submission
+    const saveResult = await moodleService.submitAssignment(assignmentId, text);
+
+    // Optionally submit for grading
+    let gradingResult = null;
+    if (submitForGrading) {
+      gradingResult = await moodleService.submitAssignmentForGrading(assignmentId);
+    }
+
+    res.json({
+      message: 'Assignment submitted successfully',
+      saveResult,
+      gradingResult,
+      submittedForGrading: submitForGrading
+    });
+  } catch (error) {
+    console.error('Submit assignment error:', error);
+    res.status(500).json({ message: 'Error submitting assignment', error: error.message });
+  }
+};
+
+// Get assignment submission status
+exports.getAssignmentStatus = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const status = await moodleService.getAssignmentSubmissionStatus(assignmentId, user.moodleUserId);
+
+    res.json({ status });
+  } catch (error) {
+    console.error('Get assignment status error:', error);
+    res.status(500).json({ message: 'Error getting assignment status', error: error.message });
+  }
+};
+
+// Create forum discussion
+exports.createForumDiscussion = async (req, res) => {
+  try {
+    const { forumId } = req.params;
+    const { subject, message, subscribe, groupId } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.createForumDiscussion(forumId, subject, message, {
+      subscribe,
+      groupId
+    });
+
+    res.status(201).json({
+      message: 'Forum discussion created successfully',
+      discussion: result
+    });
+  } catch (error) {
+    console.error('Create forum discussion error:', error);
+    res.status(500).json({ message: 'Error creating forum discussion', error: error.message });
+  }
+};
+
+// Reply to forum post
+exports.replyToForumPost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { subject, message } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.replyToForumPost(postId, subject, message);
+
+    res.status(201).json({
+      message: 'Reply posted successfully',
+      post: result
+    });
+  } catch (error) {
+    console.error('Reply to forum post error:', error);
+    res.status(500).json({ message: 'Error replying to forum post', error: error.message });
+  }
+};
+
+// Send message to Moodle user
+exports.sendMoodleMessage = async (req, res) => {
+  try {
+    const { toUserId, text } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.sendInstantMessage(toUserId, text);
+
+    res.json({
+      message: 'Message sent successfully',
+      result
+    });
+  } catch (error) {
+    console.error('Send Moodle message error:', error);
+    res.status(500).json({ message: 'Error sending message', error: error.message });
+  }
+};
+
+// Create calendar event
+exports.createCalendarEvent = async (req, res) => {
+  try {
+    const { name, description, courseId, timeStart, duration, eventType } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.createCalendarEvent({
+      name,
+      description,
+      courseId: courseId || 0,
+      timeStart: Math.floor(new Date(timeStart).getTime() / 1000),
+      duration: duration || 0,
+      eventType: eventType || 'user'
+    });
+
+    res.status(201).json({
+      message: 'Calendar event created successfully',
+      event: result
+    });
+  } catch (error) {
+    console.error('Create calendar event error:', error);
+    res.status(500).json({ message: 'Error creating calendar event', error: error.message });
+  }
+};
+
+// Delete calendar event
+exports.deleteCalendarEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.deleteCalendarEvent(eventId);
+
+    res.json({
+      message: 'Calendar event deleted successfully',
+      result
+    });
+  } catch (error) {
+    console.error('Delete calendar event error:', error);
+    res.status(500).json({ message: 'Error deleting calendar event', error: error.message });
+  }
+};
+
+// Mark notifications as read
+exports.markNotificationsRead = async (req, res) => {
+  try {
+    const { notificationId, markAll } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    
+    let result;
+    if (markAll) {
+      result = await moodleService.markAllNotificationsAsRead(user.moodleUserId);
+    } else if (notificationId) {
+      result = await moodleService.markNotificationAsRead(notificationId);
+    } else {
+      return res.status(400).json({ message: 'Either notificationId or markAll is required' });
+    }
+
+    res.json({
+      message: markAll ? 'All notifications marked as read' : 'Notification marked as read',
+      result
+    });
+  } catch (error) {
+    console.error('Mark notifications read error:', error);
+    res.status(500).json({ message: 'Error marking notifications as read', error: error.message });
+  }
+};
+
+// Self-enroll in course
+exports.selfEnroll = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { password } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.selfEnrollInCourse(courseId, password);
+
+    res.json({
+      message: 'Successfully enrolled in course',
+      result
+    });
+  } catch (error) {
+    console.error('Self-enroll error:', error);
+    res.status(500).json({ message: 'Error enrolling in course', error: error.message });
+  }
+};
+
+// Complete activity manually
+exports.completeActivity = async (req, res) => {
+  try {
+    const { cmid } = req.params;
+    const { completed } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.completeActivity(cmid, completed !== false);
+
+    res.json({
+      message: completed !== false ? 'Activity marked as complete' : 'Activity marked as incomplete',
+      result
+    });
+  } catch (error) {
+    console.error('Complete activity error:', error);
+    res.status(500).json({ message: 'Error updating activity completion', error: error.message });
+  }
+};
+
+// Get course completion status
+exports.getCourseCompletion = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const status = await moodleService.getCourseCompletionStatus(courseId, user.moodleUserId);
+
+    res.json({ completion: status });
+  } catch (error) {
+    console.error('Get course completion error:', error);
+    res.status(500).json({ message: 'Error getting course completion', error: error.message });
+  }
+};
+
+// Get forum discussions for a course
+exports.getForumDiscussions = async (req, res) => {
+  try {
+    const { forumId } = req.params;
+    const { page, perPage } = req.query;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const discussions = await moodleService.getForumDiscussions(
+      forumId,
+      parseInt(page) || 0,
+      parseInt(perPage) || 10
+    );
+
+    res.json({ discussions });
+  } catch (error) {
+    console.error('Get forum discussions error:', error);
+    res.status(500).json({ message: 'Error getting forum discussions', error: error.message });
+  }
+};
+
+// Mark Moodle messages as read
+exports.markMoodleMessagesRead = async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user.moodleConnected || !user.moodleToken) {
+      return res.status(401).json({ message: 'Moodle account not connected' });
+    }
+
+    const moodleService = new MoodleService(process.env.MOODLE_URL, user.moodleToken);
+    const result = await moodleService.markMessagesAsRead(user.moodleUserId, conversationId);
+
+    res.json({
+      message: 'Messages marked as read',
+      result
+    });
+  } catch (error) {
+    console.error('Mark messages read error:', error);
+    res.status(500).json({ message: 'Error marking messages as read', error: error.message });
+  }
+};
