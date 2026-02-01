@@ -177,7 +177,7 @@ cd frontend
 npm run build
 ```
 
-2. Deploy `build` folder to Netlify or Veroku
+2. Deploy `build` folder to Netlify or Vercel
 
 ### Option 3: Docker
 
