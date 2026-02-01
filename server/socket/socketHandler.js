@@ -1,5 +1,7 @@
-// Store online users
-const onlineUsers = new Map();
+// Store online users - Map<socketId, userId> for faster lookup on disconnect
+const socketToUser = new Map();
+// Map<userId, socketId> for user lookups
+const userToSocket = new Map();
 
 const setupSocket = (io) => {
   io.on('connection', (socket) => {
@@ -8,7 +10,8 @@ const setupSocket = (io) => {
     // User joins (authentication)
     socket.on('join', (userId) => {
       socket.join(userId);
-      onlineUsers.set(userId, socket.id);
+      socketToUser.set(socket.id, userId);
+      userToSocket.set(userId, socket.id);
       console.log(`User ${userId} joined`);
       
       // Broadcast online status
@@ -49,13 +52,12 @@ const setupSocket = (io) => {
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
       
-      // Find and remove user from online users
-      for (const [userId, socketId] of onlineUsers.entries()) {
-        if (socketId === socket.id) {
-          onlineUsers.delete(userId);
-          io.emit('userOnline', { userId, online: false });
-          break;
-        }
+      // Direct lookup by socket ID (O(1) instead of O(n))
+      const userId = socketToUser.get(socket.id);
+      if (userId) {
+        socketToUser.delete(socket.id);
+        userToSocket.delete(userId);
+        io.emit('userOnline', { userId, online: false });
       }
     });
   });

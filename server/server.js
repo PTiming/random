@@ -5,7 +5,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const setupSocket = require('./socket/socketHandler');
-const { apiLimiter, authLimiter, createLimiter } = require('./middleware/rateLimiter');
+const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 
 // Import routes
 const authRoutes = require('./routes/auth');

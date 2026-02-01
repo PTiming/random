@@ -18,13 +18,4 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Stricter limiter for creating content (posts, comments, messages)
-const createLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // Limit each IP to 50 create requests per windowMs
-  message: { message: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-module.exports = { apiLimiter, authLimiter, createLimiter };
+module.exports = { apiLimiter, authLimiter };
