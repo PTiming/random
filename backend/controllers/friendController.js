@@ -98,8 +98,9 @@ exports.acceptFriendRequest = async (req, res) => {
     currentUser.friendRequests[requestIndex].status = 'accepted';
     
     // Update the sender's sent request status
+    const currentUserId = req.userId;
     const sentRequestIndex = requestingUser.sentFriendRequests.findIndex(
-      req => req.to.toString() === req.userId && req.status === 'pending'
+      request => request.to.toString() === currentUserId && request.status === 'pending'
     );
     if (sentRequestIndex > -1) {
       requestingUser.sentFriendRequests[sentRequestIndex].status = 'accepted';
@@ -109,8 +110,8 @@ exports.acceptFriendRequest = async (req, res) => {
     if (!currentUser.friends.includes(id)) {
       currentUser.friends.push(id);
     }
-    if (!requestingUser.friends.includes(req.userId)) {
-      requestingUser.friends.push(req.userId);
+    if (!requestingUser.friends.includes(currentUserId)) {
+      requestingUser.friends.push(currentUserId);
     }
 
     await Promise.all([currentUser.save(), requestingUser.save()]);
@@ -163,8 +164,9 @@ exports.rejectFriendRequest = async (req, res) => {
     currentUser.friendRequests[requestIndex].status = 'rejected';
 
     // Update sender's sent request
+    const currentUserId = req.userId;
     const sentRequestIndex = requestingUser.sentFriendRequests.findIndex(
-      req => req.to.toString() === req.userId && req.status === 'pending'
+      request => request.to.toString() === currentUserId && request.status === 'pending'
     );
     if (sentRequestIndex > -1) {
       requestingUser.sentFriendRequests[sentRequestIndex].status = 'rejected';
@@ -193,12 +195,13 @@ exports.cancelFriendRequest = async (req, res) => {
 
     // Remove from current user's sent requests
     currentUser.sentFriendRequests = currentUser.sentFriendRequests.filter(
-      req => !(req.to.toString() === id && req.status === 'pending')
+      request => !(request.to.toString() === id && request.status === 'pending')
     );
 
     // Remove from target user's friend requests
+    const currentUserId = req.userId;
     targetUser.friendRequests = targetUser.friendRequests.filter(
-      req => !(req.from.toString() === req.userId && req.status === 'pending')
+      request => !(request.from.toString() === currentUserId && request.status === 'pending')
     );
 
     await Promise.all([currentUser.save(), targetUser.save()]);
