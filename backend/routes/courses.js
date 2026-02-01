@@ -6,9 +6,10 @@ const {
   syncFromMoodle
 } = require('../controllers/courseController');
 const { protect } = require('../middleware/auth');
+const { apiLimiter, syncLimiter } = require('../middleware/rateLimiter');
 
-router.get('/', protect, getCourses);
-router.get('/:id', protect, getCourse);
-router.post('/sync-from-moodle', protect, syncFromMoodle);
+router.get('/', protect, apiLimiter, getCourses);
+router.get('/:id', protect, apiLimiter, getCourse);
+router.post('/sync-from-moodle', protect, syncLimiter, syncFromMoodle);
 
 module.exports = router;

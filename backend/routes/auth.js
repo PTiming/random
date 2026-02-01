@@ -7,10 +7,11 @@ const {
   getMe
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.post('/moodle', loginWithMoodle);
+router.post('/register', authLimiter, registerUser);
+router.post('/login', authLimiter, loginUser);
+router.post('/moodle', authLimiter, loginWithMoodle);
 router.get('/me', protect, getMe);
 
 module.exports = router;
