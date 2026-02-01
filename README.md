@@ -307,54 +307,733 @@ Both students and teachers can **push data TO Moodle** and **pull data FROM Mood
 
 ### User Management APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `core_user_create_users` | Create new users in Moodle | Sync new LMS users to Moodle |
-| `core_user_update_users` | Update existing user details | Sync user profile changes to Moodle |
-| `core_user_get_users` | Search and retrieve users | Query Moodle users |
-| `core_user_get_users_by_field` | Get users by specific field (id, email, username) | Find users for sync matching |
-| `core_user_delete_users` | Delete users from Moodle | Remove synced users (configured but not actively used) |
+#### `core_user_create_users`
+Creates one or more users in Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Create new user accounts in Moodle from the LMS |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Students (self-registration), Teachers, Admin |
+| **Trigger** | User registers in LMS |
+
+**Parameters:**
+```javascript
+{
+  'users[0][username]': 'john.doe',        // Required: unique username
+  'users[0][email]': 'john@example.com',   // Required: valid email
+  'users[0][firstname]': 'John',           // Required: first name
+  'users[0][lastname]': 'Doe',             // Required: last name
+  'users[0][password]': 'SecurePass123!',  // Required: meets Moodle policy
+  'users[0][auth]': 'manual',              // Auth method (manual, ldap, etc.)
+  'users[0][idnumber]': 'EMP001',          // Optional: ID number
+  'users[0][lang]': 'en',                  // Optional: language
+  'users[0][timezone]': 'America/New_York' // Optional: timezone
+}
+```
+
+**Response:**
+```javascript
+[{ "id": 123, "username": "john.doe" }]
+```
+
+---
+
+#### `core_user_update_users`
+Updates existing user details in Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Sync profile changes from LMS to Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Students, Teachers, Admin |
+| **Trigger** | User updates their profile |
+
+**Parameters:**
+```javascript
+{
+  'users[0][id]': 123,                      // Required: Moodle user ID
+  'users[0][email]': 'newemail@example.com', // Optional: new email
+  'users[0][firstname]': 'Jonathan',         // Optional: new first name
+  'users[0][lastname]': 'Smith',             // Optional: new last name
+  'users[0][suspended]': 0                   // Optional: 0=active, 1=suspended
+}
+```
+
+**Response:** `null` (success) or error object
+
+---
+
+#### `core_user_get_users`
+Search for users matching criteria.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Search all Moodle users |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Admin only |
+| **Trigger** | Admin searches for users |
+
+**Parameters:**
+```javascript
+{
+  'criteria[0][key]': 'email',           // Search field
+  'criteria[0][value]': '%@example.com'  // Search value (% = wildcard)
+}
+```
+
+**Response:**
+```javascript
+{
+  "users": [
+    { "id": 123, "username": "john.doe", "email": "john@example.com", ... }
+  ]
+}
+```
+
+---
+
+#### `core_user_get_users_by_field`
+Get users by a specific field value.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Find specific user for sync matching |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students, Teachers, Admin |
+| **Trigger** | Login, profile sync, enrollment |
+
+**Parameters:**
+```javascript
+{
+  'field': 'email',                    // Field: id, email, username
+  'values[0]': 'john@example.com'      // Value to match
+}
+```
+
+**Response:**
+```javascript
+[{ "id": 123, "username": "john.doe", "email": "john@example.com", "firstname": "John", ... }]
+```
+
+---
+
+#### `core_user_delete_users`
+Delete users from Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Remove users from Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Admin only |
+| **Trigger** | Admin deletes user |
+
+**Parameters:**
+```javascript
+{
+  'userids[0]': 123  // Moodle user ID to delete
+}
+```
+
+**Response:** `null` (success) or error object
+
+---
 
 ### Course Management APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `core_course_get_courses` | Get all courses from Moodle | List available Moodle courses for import |
-| `core_course_get_courses_by_field` | Get courses by field (id, shortname) | Find specific courses for sync |
-| `core_course_create_courses` | Create new courses in Moodle | Export LMS courses to Moodle |
-| `core_course_update_courses` | Update existing course details | Sync course changes to Moodle |
-| `core_course_delete_courses` | Delete courses from Moodle | Remove synced courses (configured but not actively used) |
+#### `core_course_get_courses`
+Get all courses from Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | List all available courses for import |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Teachers, Admin |
+| **Trigger** | View Moodle courses, import course |
+
+**Parameters:**
+```javascript
+{
+  'options[ids][0]': 456  // Optional: specific course IDs
+}
+// Or empty {} to get all courses
+```
+
+**Response:**
+```javascript
+[
+  {
+    "id": 456,
+    "shortname": "PROG101",
+    "fullname": "Introduction to Programming",
+    "summary": "Learn programming basics",
+    "categoryid": 1,
+    "startdate": 1704067200,
+    "enddate": 1735689600,
+    "visible": 1
+  }
+]
+```
+
+---
+
+#### `core_course_get_courses_by_field`
+Get courses by a specific field.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Find specific course for sync |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Teachers, Admin |
+| **Trigger** | Course sync, verification |
+
+**Parameters:**
+```javascript
+{
+  'field': 'shortname',    // Field: id, shortname, idnumber, category
+  'value': 'PROG101'       // Value to match
+}
+```
+
+**Response:**
+```javascript
+{
+  "courses": [{ "id": 456, "shortname": "PROG101", "fullname": "Introduction to Programming", ... }]
+}
+```
+
+---
+
+#### `core_course_create_courses`
+Create new courses in Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Export LMS courses to Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Teachers, Admin |
+| **Trigger** | Teacher creates course, sync to Moodle |
+
+**Parameters:**
+```javascript
+{
+  'courses[0][fullname]': 'Introduction to Programming',  // Required
+  'courses[0][shortname]': 'PROG101',                     // Required: unique
+  'courses[0][categoryid]': 1,                            // Required: category ID
+  'courses[0][summary]': 'Learn programming basics',      // Optional: description
+  'courses[0][summaryformat]': 1,                         // 1=HTML, 2=plain text
+  'courses[0][format]': 'topics',                         // topics, weeks, social
+  'courses[0][visible]': 1,                               // 0=hidden, 1=visible
+  'courses[0][startdate]': 1704067200,                    // Unix timestamp
+  'courses[0][enddate]': 1735689600,                      // Unix timestamp
+  'courses[0][numsections]': 10,                          // Number of sections
+  'courses[0][maxbytes]': 0,                              // Max upload size (0=site default)
+  'courses[0][showgrades]': 1,                            // Show gradebook
+  'courses[0][enablecompletion]': 1                       // Enable completion tracking
+}
+```
+
+**Response:**
+```javascript
+[{ "id": 456, "shortname": "PROG101" }]
+```
+
+---
+
+#### `core_course_update_courses`
+Update existing courses in Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Sync course changes to Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Teachers, Admin |
+| **Trigger** | Teacher edits course |
+
+**Parameters:**
+```javascript
+{
+  'courses[0][id]': 456,                           // Required: Moodle course ID
+  'courses[0][fullname]': 'Advanced Programming', // Optional: new name
+  'courses[0][summary]': 'Updated description',   // Optional: new description
+  'courses[0][visible]': 0,                       // Optional: hide course
+  'courses[0][enddate]': 1767225600               // Optional: new end date
+}
+```
+
+**Response:** `null` (success) or error object with warnings
+
+---
+
+#### `core_course_delete_courses`
+Delete courses from Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Remove courses from Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Admin only |
+| **Trigger** | Admin deletes course |
+
+**Parameters:**
+```javascript
+{
+  'courseids[0]': 456  // Moodle course ID to delete
+}
+```
+
+**Response:** `null` (success) or error object
+
+---
 
 ### Enrollment Management APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `enrol_manual_enrol_users` | Enroll users in courses | Sync enrollments to Moodle |
-| `enrol_manual_unenrol_users` | Unenroll users from courses | Sync unenrollments to Moodle |
-| `core_enrol_get_enrolled_users` | Get all enrolled users in a course | Import enrollments from Moodle |
-| `core_enrol_get_users_courses` | Get all courses a user is enrolled in | Check user's Moodle enrollments |
+#### `enrol_manual_enrol_users`
+Enroll users in courses with specific roles.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Sync enrollments to Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Students (self-enroll), Teachers, Admin |
+| **Trigger** | User enrolls in course |
+
+**Parameters:**
+```javascript
+{
+  'enrolments[0][userid]': 123,     // Required: Moodle user ID
+  'enrolments[0][courseid]': 456,   // Required: Moodle course ID
+  'enrolments[0][roleid]': 5,       // Required: 5=student, 3=teacher, 4=non-editing teacher
+  'enrolments[0][timestart]': 0,    // Optional: enrollment start (0=now)
+  'enrolments[0][timeend]': 0,      // Optional: enrollment end (0=never)
+  'enrolments[0][suspend]': 0       // Optional: 0=active, 1=suspended
+}
+```
+
+**Role IDs:**
+- `1` = Manager
+- `3` = Teacher (editing)
+- `4` = Teacher (non-editing)
+- `5` = Student
+
+**Response:** `null` (success) or error object
+
+---
+
+#### `enrol_manual_unenrol_users`
+Unenroll users from courses.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Sync unenrollments to Moodle |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Students (self), Teachers, Admin |
+| **Trigger** | User unenrolls from course |
+
+**Parameters:**
+```javascript
+{
+  'enrolments[0][userid]': 123,    // Required: Moodle user ID
+  'enrolments[0][courseid]': 456   // Required: Moodle course ID
+}
+```
+
+**Response:** `null` (success) or error object
+
+---
+
+#### `core_enrol_get_enrolled_users`
+Get all users enrolled in a course.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Import enrollments, view class roster |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Teachers, Admin |
+| **Trigger** | View course students, sync enrollments |
+
+**Parameters:**
+```javascript
+{
+  'courseid': 456,                           // Required: Moodle course ID
+  'options[0][name]': 'userfields',          // Optional: fields to return
+  'options[0][value]': 'id,username,email',
+  'options[1][name]': 'limitfrom',           // Optional: pagination start
+  'options[1][value]': 0,
+  'options[2][name]': 'limitnumber',         // Optional: max results
+  'options[2][value]': 100
+}
+```
+
+**Response:**
+```javascript
+[
+  {
+    "id": 123,
+    "username": "john.doe",
+    "email": "john@example.com",
+    "firstname": "John",
+    "lastname": "Doe",
+    "roles": [{ "roleid": 5, "name": "Student" }],
+    "enrolledcourses": [{ "id": 456, "fullname": "Introduction to Programming" }]
+  }
+]
+```
+
+---
+
+#### `core_enrol_get_users_courses`
+Get all courses a user is enrolled in.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Show "My Courses", check enrollments |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students, Teachers, Admin |
+| **Trigger** | View enrolled courses |
+
+**Parameters:**
+```javascript
+{
+  'userid': 123,             // Required: Moodle user ID
+  'returnusercount': 1       // Optional: include enrollment count
+}
+```
+
+**Response:**
+```javascript
+[
+  {
+    "id": 456,
+    "shortname": "PROG101",
+    "fullname": "Introduction to Programming",
+    "enrolledusercount": 25,
+    "progress": 75,          // Completion percentage
+    "startdate": 1704067200,
+    "enddate": 1735689600
+  }
+]
+```
+
+---
 
 ### Grade Management APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `core_grades_get_grades` | Get grades for specific items/users | Fetch detailed grade data |
-| `core_grades_update_grades` | Update grade values | Push grades to Moodle (configured for future use) |
-| `gradereport_user_get_grades_table` | Get full gradebook table for a user | Import comprehensive grades from Moodle |
+#### `core_grades_get_grades`
+Get grades for specific grade items and users.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Fetch detailed grade data |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students (own), Teachers (all) |
+| **Trigger** | View specific activity grade |
+
+**Parameters:**
+```javascript
+{
+  'courseid': 456,            // Required: Moodle course ID
+  'component': 'mod_assign',  // Optional: activity type
+  'activityid': 789,          // Optional: activity ID
+  'userids[0]': 123           // Optional: specific user(s)
+}
+```
+
+**Response:**
+```javascript
+{
+  "items": [
+    {
+      "activityid": 789,
+      "itemnumber": 0,
+      "scaleid": 0,
+      "grades": [
+        {
+          "userid": 123,
+          "grade": 85.5,
+          "str_grade": "85.50",
+          "feedback": "Good work!",
+          "datesubmitted": 1704153600,
+          "dategraded": 1704240000
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+#### `core_grades_update_grades`
+Update student grades in Moodle.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Push grades to Moodle gradebook |
+| **Direction** | LMS → Moodle (Push) |
+| **Used By** | Teachers only |
+| **Trigger** | Teacher enters/updates grades |
+
+**Parameters:**
+```javascript
+{
+  'source': 'mern_lms',           // Source identifier
+  'courseid': 456,                // Required: course ID
+  'component': 'mod_assign',      // Activity component
+  'activityid': 789,              // Activity ID
+  'itemnumber': 0,                // Grade item number
+  'grades[0][userid]': 123,       // Student's Moodle ID
+  'grades[0][rawgrade]': 85.5,    // Grade value
+  'grades[0][feedback]': 'Good!', // Optional: feedback
+  'grades[0][feedbackformat]': 1  // 1=HTML, 2=plain
+}
+```
+
+**Response:** `0` (success) or error code
+
+---
+
+#### `gradereport_user_get_grades_table`
+Get the full gradebook table for a user.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Import comprehensive grades |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students (own), Teachers (all) |
+| **Trigger** | View grades page |
+
+**Parameters:**
+```javascript
+{
+  'courseid': 456,  // Required: Moodle course ID
+  'userid': 123     // Optional: specific user (omit for all)
+}
+```
+
+**Response:**
+```javascript
+{
+  "tables": [
+    {
+      "courseid": 456,
+      "userid": 123,
+      "userfullname": "John Doe",
+      "maxdepth": 1,
+      "tabledata": [
+        {
+          "itemname": { "content": "Assignment 1", "id": 789 },
+          "grade": { "content": "85.50" },
+          "percentage": { "content": "85.50 %" },
+          "feedback": { "content": "Good work!" },
+          "contributiontocoursetotal": { "content": "17.10 %" }
+        },
+        {
+          "itemname": { "content": "Course total" },
+          "grade": { "content": "85.50" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
 
 ### Assignment APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `mod_assign_get_assignments` | Get assignments for courses | Fetch course assignments from Moodle |
-| `mod_assign_get_submissions` | Get assignment submissions | Fetch student submissions from Moodle |
+#### `mod_assign_get_assignments`
+Get assignments for one or more courses.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Fetch course assignments |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Teachers |
+| **Trigger** | View course assignments |
+
+**Parameters:**
+```javascript
+{
+  'courseids[0]': 456,           // Course IDs
+  'capabilities[0]': 'mod/assign:grade',  // Optional: filter by capability
+  'includenotenrolledcourses': 0 // Include unenrolled courses
+}
+```
+
+**Response:**
+```javascript
+{
+  "courses": [
+    {
+      "id": 456,
+      "fullname": "Introduction to Programming",
+      "assignments": [
+        {
+          "id": 789,
+          "cmid": 101,
+          "course": 456,
+          "name": "Assignment 1",
+          "intro": "Write a program...",
+          "duedate": 1705363200,
+          "cutoffdate": 1705449600,
+          "grade": 100,
+          "submissiondrafts": 0,
+          "sendnotifications": 1,
+          "teamsubmission": 0
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+#### `mod_assign_get_submissions`
+Get student submissions for assignments.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | View student work |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Teachers |
+| **Trigger** | View submissions for grading |
+
+**Parameters:**
+```javascript
+{
+  'assignmentids[0]': 789,       // Assignment IDs
+  'status': 'submitted',         // Optional: draft, submitted, etc.
+  'since': 0,                    // Optional: modified since timestamp
+  'before': 0                    // Optional: modified before timestamp
+}
+```
+
+**Response:**
+```javascript
+{
+  "assignments": [
+    {
+      "assignmentid": 789,
+      "submissions": [
+        {
+          "id": 1001,
+          "userid": 123,
+          "timecreated": 1705276800,
+          "timemodified": 1705363100,
+          "status": "submitted",
+          "groupid": 0,
+          "plugins": [
+            {
+              "type": "onlinetext",
+              "name": "Online text",
+              "editorfields": [{ "name": "onlinetext", "text": "My submission..." }]
+            },
+            {
+              "type": "file",
+              "name": "File submissions",
+              "fileareas": [{ "files": [{ "filename": "code.py", "fileurl": "..." }] }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
 
 ### Completion Tracking APIs
 
-| API Function | Description | Usage in LMS |
-|-------------|-------------|--------------|
-| `core_completion_get_course_completion_status` | Get course completion status | Track student progress from Moodle |
-| `core_completion_get_activities_completion_status` | Get activity completion status | Track activity-level progress |
+#### `core_completion_get_course_completion_status`
+Get overall course completion status for a user.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Track student's course progress |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students (own), Teachers (all) |
+| **Trigger** | View progress/completion |
+
+**Parameters:**
+```javascript
+{
+  'courseid': 456,  // Required: Moodle course ID
+  'userid': 123     // Required: Moodle user ID
+}
+```
+
+**Response:**
+```javascript
+{
+  "completionstatus": {
+    "completed": false,
+    "aggregation": 1,           // 1=ALL, 2=ANY
+    "completions": [
+      {
+        "type": 1,              // Completion criteria type
+        "title": "Activity completion",
+        "status": "No",
+        "complete": false,
+        "timecompleted": null,
+        "details": {
+          "criteria": "Complete all activities",
+          "requirement": "Assignment 1, Quiz 1"
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### `core_completion_get_activities_completion_status`
+Get completion status of individual activities.
+
+| Property | Details |
+|----------|---------|
+| **Purpose** | Track activity-level progress |
+| **Direction** | Moodle → LMS (Pull) |
+| **Used By** | Students (own), Teachers (all) |
+| **Trigger** | View detailed progress |
+
+**Parameters:**
+```javascript
+{
+  'courseid': 456,  // Required: Moodle course ID
+  'userid': 123     // Required: Moodle user ID
+}
+```
+
+**Response:**
+```javascript
+{
+  "statuses": [
+    {
+      "cmid": 101,              // Course module ID
+      "modname": "assign",      // Module type
+      "instance": 789,          // Activity ID
+      "state": 1,               // 0=incomplete, 1=complete, 2=complete pass, 3=complete fail
+      "timecompleted": 1705363200,
+      "tracking": 2,            // 0=none, 1=manual, 2=automatic
+      "overrideby": null
+    },
+    {
+      "cmid": 102,
+      "modname": "quiz",
+      "instance": 790,
+      "state": 0,
+      "timecompleted": null,
+      "tracking": 2
+    }
+  ]
+}
+```
+
+---
 
 ### API Request Format
 
@@ -369,55 +1048,6 @@ wstoken: {your-token}
 wsfunction: {function-name}
 moodlewsrestformat: json
 {...function-specific-params}
-```
-
-### Example API Calls
-
-**Create User:**
-```javascript
-// Function: core_user_create_users
-params: {
-  'users[0][username]': 'john.doe',
-  'users[0][email]': 'john@example.com',
-  'users[0][firstname]': 'John',
-  'users[0][lastname]': 'Doe',
-  'users[0][password]': 'SecurePass123!',
-  'users[0][auth]': 'manual'
-}
-```
-
-**Create Course:**
-```javascript
-// Function: core_course_create_courses
-params: {
-  'courses[0][fullname]': 'Introduction to Programming',
-  'courses[0][shortname]': 'PROG101',
-  'courses[0][categoryid]': 1,
-  'courses[0][summary]': 'Learn programming basics',
-  'courses[0][format]': 'topics',
-  'courses[0][visible]': 1,
-  'courses[0][startdate]': 1704067200,  // Unix timestamp
-  'courses[0][enddate]': 1735689600
-}
-```
-
-**Enroll User:**
-```javascript
-// Function: enrol_manual_enrol_users
-params: {
-  'enrolments[0][userid]': 123,      // Moodle user ID
-  'enrolments[0][courseid]': 456,    // Moodle course ID
-  'enrolments[0][roleid]': 5         // 5=student, 3=teacher
-}
-```
-
-**Get Course Grades:**
-```javascript
-// Function: gradereport_user_get_grades_table
-params: {
-  courseid: 456,
-  userid: 123  // Optional: specific user
-}
 ```
 
 ### Moodle Role IDs
@@ -435,8 +1065,9 @@ The web service user needs these capabilities:
 - `moodle/user:create`, `moodle/user:update`, `moodle/user:viewdetails`
 - `moodle/course:create`, `moodle/course:update`, `moodle/course:view`
 - `enrol/manual:enrol`, `enrol/manual:unenrol`
-- `moodle/grade:view`, `moodle/grade:viewall`
+- `moodle/grade:view`, `moodle/grade:viewall`, `moodle/grade:edit`
 - `mod/assign:view`, `mod/assign:grade`
+- `moodle/completion:view`
 
 ## API Endpoints
 
